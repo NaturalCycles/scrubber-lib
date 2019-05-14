@@ -1,15 +1,26 @@
-import {ScrubberConfig} from "../scrubber.model";
+import { ScrubberConfig } from '../scrubber.model'
 
-export function configMock(): ScrubberConfig {
+export function configStaticScrubbersMock (): ScrubberConfig {
   return {
-    pw: 'staticScrubber',
-    name: 'staticScrubber'
+    pw: {
+      scrubber: 'staticScrubber',
+      params: {
+        replacement: 'notsecret',
+      },
+    },
+    name: {
+      scrubber: 'staticScrubber',
+      params: {
+        replacement: 'Jane Doe',
+      },
+    },
   }
 }
 
-export function configMock2(): ScrubberConfig {
+export function configEmailScrubberMock (): ScrubberConfig {
   return {
-    password: 'staticScrubber',
-    email: 'emailScrubber'
+    email: {
+      scrubber: 'emailScrubber',
+    },
   }
 }

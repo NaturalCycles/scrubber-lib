@@ -1,13 +1,16 @@
+import { StringMap } from '@naturalcycles/js-lib'
 
+export type ScrubberFn = (value?: any, params?: StringMap<any>) => any
 
-
-export type ScrubberFn = (value: any) => any
-
-export type ScrubberConfig = {
-  [key: string]: string
+export interface ScrubberConfig {
+  [key: string]: ScrubberFieldConfig
 }
 
-export type ScrubbersImpl = {
+export interface ScrubberFieldConfig {
+  scrubber: string
+  params?: StringMap<any>
+}
+
+export interface ScrubbersImpl {
   [scrubberName: string]: ScrubberFn
 }
-
