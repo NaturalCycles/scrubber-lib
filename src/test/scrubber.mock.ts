@@ -24,3 +24,11 @@ export function configEmailScrubberMock (): ScrubberConfig {
     },
   }
 }
+
+export function configInvalidScrubberMock (): ScrubberConfig {
+  return {
+    email: {
+      scrubber: 'nonExistingScrubber',
+    },
+  }
+}
