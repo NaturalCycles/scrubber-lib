@@ -1,6 +1,6 @@
 import { deepFreeze } from '@naturalcycles/js-lib'
 import { Scrubber } from './scrubber'
-import { ScrubberConfig } from './scrubber.model'
+import { ScrubberConfig, ScrubberFn, ScrubbersImpl } from './scrubber.model'
 import { ANONYMIZED_EMAIL } from './scrubbers'
 import {
   configEmailScrubberMock,
@@ -9,13 +9,21 @@ import {
 } from './test/scrubber.mock'
 
 // Convenient method for initializing object and scrubbing
-const scrub = <T extends any[]>(data: T, cfg: ScrubberConfig): T => {
-  const scrubber = new Scrubber(cfg)
+const scrub = <T extends any[]>(
+  data: T,
+  cfg: ScrubberConfig,
+  additionalScrubbersImpl?: ScrubbersImpl,
+): T => {
+  const scrubber = new Scrubber(cfg, additionalScrubbersImpl)
   return scrubber.scrub(data)
 }
 
-const scrubSingle = <T extends any>(data: T, cfg: ScrubberConfig): T => {
-  const scrubber = new Scrubber(cfg)
+const scrubSingle = <T extends any>(
+  data: T,
+  cfg: ScrubberConfig,
+  additionalScrubbersImpl?: ScrubbersImpl,
+): T => {
+  const scrubber = new Scrubber(cfg, additionalScrubbersImpl)
   return scrubber.scrubSingle(data)
 }
 
@@ -49,6 +57,23 @@ test('keeps not modified fields', () => {
 
   const result = scrub(data, configEmailScrubberMock())
   expect(result).toEqual([{ safeField: 'keep', email: ANONYMIZED_EMAIL }])
+})
+
+test('supports additional scrubbers', () => {
+  const mockScrubber: ScrubberFn = () => 'modified'
+  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+
+  const cfg: ScrubberConfig = {
+    target: {
+      scrubber: 'aNewScrubber',
+    },
+  }
+
+  const data = [{ target: 'original' }]
+  deepFreeze(data) // Ensure data doesnt mutate
+
+  const result = scrub(data, cfg, additionalScrubbers)
+  expect(result).toEqual([{ target: 'modified' }])
 })
 
 test('supports both .scrub and .scrubSingle', () => {
