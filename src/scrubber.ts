@@ -1,63 +1,61 @@
 import { ScrubberConfig, ScrubbersImpl } from './scrubber.model'
 import { defaultScrubbers } from './scrubbers'
 
-export function scrub<T extends any[]> (
-  data: T,
-  cfg: ScrubberConfig,
-  additionalScrubbersImpl?: ScrubbersImpl,
-): T {
-  const scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
-  checkIfScrubbersExistAndRaise(cfg, scrubbers)
+export class Scrubber {
+  cfg: ScrubberConfig
+  scrubbers: ScrubbersImpl
 
-  return data.map(o => applyScrubbers(o, cfg, scrubbers)) as T
-}
+  constructor (cfg: ScrubberConfig, additionalScrubbersImpl?: ScrubbersImpl) {
+    const scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
+    this.checkIfScrubbersExistAndRaise(cfg, scrubbers)
 
-/*
-  Sugar syntax for applying on one individual object.
- */
-export function scrubSingle<T extends any> (
-  data: T,
-  cfg: ScrubberConfig,
-  additionalScrubbersImpl?: ScrubbersImpl,
-): T {
-  return scrub([data], cfg, additionalScrubbersImpl)[0]
-}
+    this.cfg = cfg
+    this.scrubbers = scrubbers
+  }
 
-function applyScrubbers<T extends any[]> (
-  data: T,
-  cfg: ScrubberConfig,
-  scrubbers: ScrubbersImpl,
-): T {
-  const dataCopy = { ...data }
+  scrub<T extends any[]> (data: T): T {
+    return data.map(o => this.applyScrubbers(o)) as T
+  }
 
-  Object.keys(dataCopy).forEach(key => {
-    const scrubberCurrentField = cfg[key]
+  /*
+  Syntax sugar for applying on individual object.
+  */
+  scrubSingle<T extends any> (data: T): T {
+    return this.scrub([data])[0]
+  }
 
-    if (!scrubberCurrentField) {
-      // Deep transverse
-      if (typeof dataCopy[key] === 'object') {
-        dataCopy[key] = applyScrubbers(dataCopy[key], cfg, scrubbers)
+  private applyScrubbers<T extends any[]> (data: T): T {
+    const dataCopy = { ...data }
+
+    Object.keys(dataCopy).forEach(key => {
+      const scrubberCurrentField = this.cfg[key]
+
+      if (!scrubberCurrentField) {
+        // Deep transverse
+        if (typeof dataCopy[key] === 'object') {
+          dataCopy[key] = this.applyScrubbers(dataCopy[key])
+        }
+
+        return
       }
 
-      return
-    }
+      const scrubber = this.scrubbers[scrubberCurrentField.scrubber]
+      const params = scrubberCurrentField.params
 
-    const scrubber = scrubbers[scrubberCurrentField.scrubber]
-    const params = scrubberCurrentField.params
+      dataCopy[key] = scrubber(dataCopy[key], params)
+    })
 
-    dataCopy[key] = scrubber(dataCopy[key], params)
-  })
+    return dataCopy as any
+  }
 
-  return dataCopy as any
-}
+  private checkIfScrubbersExistAndRaise (cfg: ScrubberConfig, scrubbers: ScrubbersImpl): void {
+    const scrubbersOnConfig = Object.keys(cfg).map(field => cfg[field].scrubber)
+    const scrubbersAvailable = Object.keys(scrubbers)
 
-function checkIfScrubbersExistAndRaise (cfg: ScrubberConfig, scrubbers: ScrubbersImpl): void {
-  const scrubbersOnConfig = Object.keys(cfg).map(field => cfg[field].scrubber)
-  const scrubbersAvailable = Object.keys(scrubbers)
-
-  scrubbersOnConfig.map(scrubber => {
-    if (scrubbersAvailable.indexOf(scrubber) === -1) {
-      throw Error(`${scrubber} not found`)
-    }
-  })
+    scrubbersOnConfig.map(scrubber => {
+      if (scrubbersAvailable.indexOf(scrubber) === -1) {
+        throw Error(`${scrubber} not found`)
+      }
+    })
+  }
 }

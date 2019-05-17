@@ -1,11 +1,23 @@
 import { deepFreeze } from '@naturalcycles/js-lib'
-import { scrub } from './scrubber'
+import { Scrubber } from './scrubber'
+import { ScrubberConfig } from './scrubber.model'
 import { ANONYMIZED_EMAIL } from './scrubbers'
 import {
   configEmailScrubberMock,
   configInvalidScrubberMock,
   configStaticScrubbersMock,
 } from './test/scrubber.mock'
+
+// Convenient method for initializing object and scrubbing
+const scrub = <T extends any[]>(data: T, cfg: ScrubberConfig): T => {
+  const scrubber = new Scrubber(cfg)
+  return scrubber.scrub(data)
+}
+
+const scrubSingle = <T extends any>(data: T, cfg: ScrubberConfig): T => {
+  const scrubber = new Scrubber(cfg)
+  return scrubber.scrubSingle(data)
+}
 
 test('applies to more than a field', () => {
   const data = [{ pw: 'secret', name: 'Real Name' }]
@@ -39,7 +51,17 @@ test('keeps not modified fields', () => {
   expect(result).toEqual([{ safeField: 'keep', email: ANONYMIZED_EMAIL }])
 })
 
-test('returns empty array', () => {
+test('supports both .scrub and .scrubSingle', () => {
+  const data = [{ pw: 'secret', name: 'Real Name' }]
+  deepFreeze(data) // Ensure data doesnt mutate
+
+  const result1 = scrub(data, configStaticScrubbersMock())
+  const result2 = scrubSingle(data[0], configStaticScrubbersMock())
+
+  expect(result1[0]).toEqual(result2)
+})
+
+test('returns empty array for empty arrays', () => {
   const result = scrub([], configStaticScrubbersMock())
   expect(result).toEqual([])
 })
