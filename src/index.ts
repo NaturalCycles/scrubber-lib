@@ -1,3 +1,4 @@
-import {scrub} from './scrubber';
+import { Scrubber } from './scrubber'
+import { ScrubberConfig } from './scrubber.model'
 
-export {scrub}
+export { Scrubber, ScrubberConfig }
