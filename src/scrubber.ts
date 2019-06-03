@@ -2,15 +2,11 @@ import { ScrubberConfig, ScrubbersImpl } from './scrubber.model'
 import { defaultScrubbers } from './scrubbers'
 
 export class Scrubber {
-  cfg: ScrubberConfig
   scrubbers: ScrubbersImpl
 
-  constructor (cfg: ScrubberConfig, additionalScrubbersImpl?: ScrubbersImpl) {
-    const scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
-    this.checkIfScrubbersExistAndRaise(cfg, scrubbers)
-
-    this.cfg = cfg
-    this.scrubbers = scrubbers
+  constructor (private readonly cfg: ScrubberConfig, additionalScrubbersImpl?: ScrubbersImpl) {
+    this.scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
+    this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
   }
 
   scrub<T extends any[]> (data: T): T {
@@ -20,25 +16,26 @@ export class Scrubber {
   /*
   Syntax sugar for applying on individual object.
   */
-  scrubSingle<T extends any> (data: T): T {
-    return this.scrub([data])[0]
+  scrubSingle<T> (data: T): T {
+    return this.applyScrubbers(data)
   }
 
-  private applyScrubbers<T extends any[]> (data: T): T {
-    const dataCopy = { ...data }
+  private applyScrubbers<T> (data: T): T {
+    const dataCopy = Array.isArray(data) ? [...data] : { ...data }
 
     Object.keys(dataCopy).forEach(key => {
       const scrubberCurrentField = this.cfg[key]
 
       if (!scrubberCurrentField) {
-        // Deep transverse
-        if (typeof dataCopy[key] === 'object') {
+        // Deep traverse
+        if (typeof dataCopy[key] === 'object' && dataCopy[key]) {
           dataCopy[key] = this.applyScrubbers(dataCopy[key])
         }
 
         return
       }
 
+      // logging is always. wrap in try/catch if cfg.throwOnError \/
       const scrubber = this.scrubbers[scrubberCurrentField.scrubber]
       const params = scrubberCurrentField.params
 
@@ -52,8 +49,8 @@ export class Scrubber {
     const scrubbersOnConfig = Object.keys(cfg).map(field => cfg[field].scrubber)
     const scrubbersAvailable = Object.keys(scrubbers)
 
-    scrubbersOnConfig.map(scrubber => {
-      if (scrubbersAvailable.indexOf(scrubber) === -1) {
+    scrubbersOnConfig.forEach(scrubber => {
+      if (!scrubbersAvailable.includes(scrubber)) {
         throw Error(`${scrubber} not found`)
       }
     })

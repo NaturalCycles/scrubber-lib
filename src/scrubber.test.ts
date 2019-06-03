@@ -27,6 +27,9 @@ const scrubSingle = <T extends any>(
   return scrubber.scrubSingle(data)
 }
 
+// TODO: add test to check nulls { key: null, array, date, function }
+// TODO: check error when calling exception
+
 test('applies to more than a field', () => {
   const data = [{ pw: 'secret', name: 'Real Name' }]
   deepFreeze(data) // Ensure data doesnt mutate
@@ -49,6 +52,18 @@ test('applies to nested fields (deep transverse, 3 levels)', () => {
 
   const result = scrub(data, configStaticScrubbersMock())
   expect(result).toEqual([{ object: { account: { pw: 'notsecret', name: 'Jane Doe' } } }])
+})
+
+test('applies to nested arrays', () => {
+  const obj1 = { pw: 'shouldChange', safe: 'shouldStay' }
+  const obj2 = { name: 'personalInformation', safe2: 'isSafe' }
+  const users = [{ users: [obj1, obj2] }]
+  deepFreeze(users)
+
+  const result = scrub(users, configStaticScrubbersMock())
+  expect(result[0].users[0]).toEqual({ pw: 'notsecret', safe: 'shouldStay' })
+  expect(result[0].users[1]).toEqual({ name: 'Jane Doe', safe2: 'isSafe' })
+  expect(Array.isArray(result[0].users)).toBeTruthy() // makes sure we don't convert array to objects
 })
 
 test('keeps not modified fields', () => {
