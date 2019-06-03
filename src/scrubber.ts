@@ -2,7 +2,7 @@ import { ScrubberConfig, ScrubbersImpl } from './scrubber.model'
 import { defaultScrubbers } from './scrubbers'
 
 export class Scrubber {
-  scrubbers: ScrubbersImpl
+  private readonly scrubbers: ScrubbersImpl
 
   constructor (private readonly cfg: ScrubberConfig, additionalScrubbersImpl?: ScrubbersImpl) {
     this.scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
@@ -24,7 +24,7 @@ export class Scrubber {
     const dataCopy = Array.isArray(data) ? [...data] : { ...data }
 
     Object.keys(dataCopy).forEach(key => {
-      const scrubberCurrentField = this.cfg[key]
+      const scrubberCurrentField = this.cfg.fields[key]
 
       if (!scrubberCurrentField) {
         // Deep traverse
@@ -35,18 +35,27 @@ export class Scrubber {
         return
       }
 
-      // logging is always. wrap in try/catch if cfg.throwOnError \/
       const scrubber = this.scrubbers[scrubberCurrentField.scrubber]
-      const params = scrubberCurrentField.params
+      const { params } = scrubberCurrentField
 
-      dataCopy[key] = scrubber(dataCopy[key], params)
+      // Always log on errors, re-throw if enabled on config
+      try {
+        dataCopy[key] = scrubber(dataCopy[key], params)
+      } catch (e) {
+        console.log(
+          `Error when applying scrubber '${scrubberCurrentField.scrubber}' to field '${key}'`,
+        )
+        console.log(e)
+
+        if (this.cfg.throwOnError) throw e
+      }
     })
 
     return dataCopy as any
   }
 
   private checkIfScrubbersExistAndRaise (cfg: ScrubberConfig, scrubbers: ScrubbersImpl): void {
-    const scrubbersOnConfig = Object.keys(cfg).map(field => cfg[field].scrubber)
+    const scrubbersOnConfig = Object.keys(cfg.fields).map(field => cfg.fields[field].scrubber)
     const scrubbersAvailable = Object.keys(scrubbers)
 
     scrubbersOnConfig.forEach(scrubber => {

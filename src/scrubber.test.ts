@@ -28,7 +28,6 @@ const scrubSingle = <T extends any>(
 }
 
 // TODO: add test to check nulls { key: null, array, date, function }
-// TODO: check error when calling exception
 
 test('applies to more than a field', () => {
   const data = [{ pw: 'secret', name: 'Real Name' }]
@@ -79,8 +78,10 @@ test('supports additional scrubbers', () => {
   const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
-    target: {
-      scrubber: 'aNewScrubber',
+    fields: {
+      target: {
+        scrubber: 'aNewScrubber',
+      },
     },
   }
 
@@ -110,4 +111,39 @@ test('fails when scrubber from config is not found (even if not used)', () => {
   expect(() => {
     scrub([], configInvalidScrubberMock())
   }).toThrow()
+})
+
+describe('error handling', () => {
+  const faultyScrubber: ScrubberFn = () => {
+    throw Error('ops')
+  }
+
+  const cfg: ScrubberConfig = {
+    fields: {
+      target: {
+        scrubber: 'faultyScrubber',
+      },
+    },
+  }
+
+  const object = { target: 'foo' }
+
+  test('logs errors by default', () => {
+    jest.spyOn(console, 'log').mockImplementation()
+
+    const scrubber = new Scrubber(cfg, { faultyScrubber })
+    scrubber.scrubSingle(object)
+
+    expect(console.log).toMatchSnapshot()
+  })
+
+  test('re-throw error if enabled on config', () => {
+    const cfgWithErrorsEnabled: ScrubberConfig = { ...cfg, throwOnError: true }
+
+    const scrubber = new Scrubber(cfgWithErrorsEnabled, { faultyScrubber })
+
+    expect(() => {
+      scrubber.scrubSingle(object)
+    }).toThrow()
+  })
 })
