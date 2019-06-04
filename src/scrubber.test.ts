@@ -5,6 +5,7 @@ import { ANONYMIZED_EMAIL } from './scrubbers'
 import {
   configEmailScrubberMock,
   configInvalidScrubberMock,
+  configMultiFieldMock,
   configStaticScrubbersMock,
 } from './test/scrubber.mock'
 
@@ -100,6 +101,14 @@ test('supports both .scrub and .scrubSingle', () => {
   const result2 = scrubSingle(data[0], configStaticScrubbersMock())
 
   expect(result1[0]).toEqual(result2)
+})
+
+test('supports comma-separated fields in field name', () => {
+  const data = [{ field1: 'orig1', field2: 'orig2' }]
+  deepFreeze(data) // Ensure data doesnt mutate
+
+  const result = scrub(data, configMultiFieldMock())
+  expect(result).toEqual([{ field1: 'modified', field2: 'modified' }])
 })
 
 test('returns empty array for empty arrays', () => {

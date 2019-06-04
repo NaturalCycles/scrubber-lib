@@ -19,17 +19,16 @@ export function configStaticScrubbersMock (): ScrubberConfig {
   }
 }
 
-export function configThrowOnErrorMock (): ScrubberConfig {
+export function configMultiFieldMock (): ScrubberConfig {
   return {
     fields: {
-      name: {
+      'field1, field2': {
         scrubber: 'staticScrubber',
         params: {
-          replacement: 'Jane Doe',
+          replacement: 'modified',
         },
       },
     },
-    throwOnError: true,
   }
 }
 
