@@ -3,9 +3,10 @@
   "scripts": {},
   "dependencies": {},
   "devDependencies": {
-    "@naturalcycles/dev-lib": "^7.6.0",
+    "@naturalcycles/dev-lib": "^7.12.0",
     "@naturalcycles/semantic-release": "^1.0.0",
-    "@types/node": "^12.0.1",
+    "@naturalcycles/test-lib": "^1.0.3",
+    "@types/node": "^12.0.4",
     "jest": "^24.8.0"
   },
   "files": [
@@ -29,7 +30,14 @@
     "node": ">=10.13"
   },
   "version": "0.0.0",
-  "description": "",
+  "description": "Scrub data in JavaScript plain objects by using rules defined in a configuration object",
+  "keywords": [
+    "scrub",
+    "scrubber",
+    "sensitive",
+    "password",
+    "gdpr"
+  ],
   "author": "Natural Cycles Team",
   "license": "MIT"
 }

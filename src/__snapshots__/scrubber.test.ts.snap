@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`error handling logs errors by default 1`] = `
+[MockFunction] {
+  "calls": Array [
+    Array [
+      "Error when applying scrubber 'faultyScrubber' to field 'target'",
+    ],
+  ],
+  "results": Array [
+    Object {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
+exports[`error handling logs errors by default 2`] = `
+[MockFunction] {
+  "calls": Array [
+    Array [
+      [Error: ops],
+    ],
+  ],
+  "results": Array [
+    Object {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
