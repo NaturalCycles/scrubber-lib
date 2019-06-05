@@ -6,15 +6,24 @@ exports[`error handling logs errors by default 1`] = `
     Array [
       "Error when applying scrubber 'faultyScrubber' to field 'target'",
     ],
-    Array [
-      [Error: ops],
-    ],
   ],
   "results": Array [
     Object {
       "type": "return",
       "value": undefined,
     },
+  ],
+}
+`;
+
+exports[`error handling logs errors by default 2`] = `
+[MockFunction] {
+  "calls": Array [
+    Array [
+      [Error: ops],
+    ],
+  ],
+  "results": Array [
     Object {
       "type": "return",
       "value": undefined,

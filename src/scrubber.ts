@@ -10,14 +10,7 @@ export class Scrubber {
     this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
   }
 
-  scrub<T extends any[]> (data: T): T {
-    return data.map(o => this.applyScrubbers(o)) as T
-  }
-
-  /*
-  Syntax sugar for applying on individual object.
-  */
-  scrubSingle<T> (data: T): T {
+  scrub<T extends any[]> (...data: T): T {
     return this.applyScrubbers(data)
   }
 
@@ -42,13 +35,13 @@ export class Scrubber {
       // Always log on errors, re-throw if enabled on config
       try {
         dataCopy[key] = scrubber(dataCopy[key], params)
-      } catch (e) {
+      } catch (err) {
         console.log(
           `Error when applying scrubber '${scrubberCurrentField.scrubber}' to field '${key}'`,
         )
-        console.log(e)
+        console.error(err)
 
-        if (this.cfg.throwOnError) throw e
+        if (this.cfg.throwOnError) throw err
       }
     })
 

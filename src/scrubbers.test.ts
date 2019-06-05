@@ -7,9 +7,9 @@ import {
 
 describe('undefinedScrubber', () => {
   test('replaces any value with undefined', () => {
-    expect(undefinedScrubber(true)).toEqual(undefined)
-    expect(undefinedScrubber(1)).toEqual(undefined)
-    expect(undefinedScrubber('foo')).toEqual(undefined)
+    expect(undefinedScrubber(true)).toBeUndefined()
+    expect(undefinedScrubber(1)).toBeUndefined()
+    expect(undefinedScrubber('foo')).toBeUndefined()
   })
 })
 

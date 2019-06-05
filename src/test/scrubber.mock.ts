@@ -36,7 +36,10 @@ export function configEmailScrubberMock (): ScrubberConfig {
   return {
     fields: {
       email: {
-        scrubber: 'emailScrubber',
+        scrubber: 'staticScrubber',
+        params: {
+          replacement: 'anonymized@email.com',
+        },
       },
     },
   }

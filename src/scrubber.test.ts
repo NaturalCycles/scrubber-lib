@@ -1,7 +1,6 @@
 import { deepFreeze } from '@naturalcycles/js-lib'
 import { Scrubber } from './scrubber'
 import { ScrubberConfig, ScrubberFn, ScrubbersImpl } from './scrubber.model'
-import { ANONYMIZED_EMAIL } from './scrubbers'
 import {
   configEmailScrubberMock,
   configInvalidScrubberMock,
@@ -12,20 +11,11 @@ import {
 // Convenient method for initializing object and scrubbing
 const scrub = <T extends any[]>(
   data: T,
-  cfg: ScrubberConfig,
+  cfg: ScrubberConfig = configStaticScrubbersMock(),
   additionalScrubbersImpl?: ScrubbersImpl,
 ): T => {
   const scrubber = new Scrubber(cfg, additionalScrubbersImpl)
-  return scrubber.scrub(data)
-}
-
-const scrubSingle = <T extends any>(
-  data: T,
-  cfg: ScrubberConfig,
-  additionalScrubbersImpl?: ScrubbersImpl,
-): T => {
-  const scrubber = new Scrubber(cfg, additionalScrubbersImpl)
-  return scrubber.scrubSingle(data)
+  return scrubber.scrub(...data)
 }
 
 // TODO: add test to check nulls { key: null, array, date, function }
@@ -71,7 +61,7 @@ test('keeps not modified fields', () => {
   deepFreeze(data) // Ensure data doesnt mutate
 
   const result = scrub(data, configEmailScrubberMock())
-  expect(result).toEqual([{ safeField: 'keep', email: ANONYMIZED_EMAIL }])
+  expect(result).toEqual([{ safeField: 'keep', email: 'anonymized@email.com' }])
 })
 
 test('supports additional scrubbers', () => {
@@ -91,16 +81,6 @@ test('supports additional scrubbers', () => {
 
   const result = scrub(data, cfg, additionalScrubbers)
   expect(result).toEqual([{ target: 'modified' }])
-})
-
-test('supports both .scrub and .scrubSingle', () => {
-  const data = [{ pw: 'secret', name: 'Real Name' }]
-  deepFreeze(data) // Ensure data doesnt mutate
-
-  const result1 = scrub(data, configStaticScrubbersMock())
-  const result2 = scrubSingle(data[0], configStaticScrubbersMock())
-
-  expect(result1[0]).toEqual(result2)
 })
 
 test('supports comma-separated fields in field name', () => {
@@ -139,11 +119,13 @@ describe('error handling', () => {
 
   test('logs errors by default', () => {
     jest.spyOn(console, 'log').mockImplementation()
+    jest.spyOn(console, 'error').mockImplementation()
 
     const scrubber = new Scrubber(cfg, { faultyScrubber })
-    scrubber.scrubSingle(object)
+    scrubber.scrub(object)
 
     expect(console.log).toMatchSnapshot()
+    expect(console.error).toMatchSnapshot()
   })
 
   test('re-throw error if enabled on config', () => {
@@ -152,7 +134,13 @@ describe('error handling', () => {
     const scrubber = new Scrubber(cfgWithErrorsEnabled, { faultyScrubber })
 
     expect(() => {
-      scrubber.scrubSingle(object)
+      scrubber.scrub(object)
     }).toThrow()
   })
+})
+
+test('scrub different types of data', () => {
+  // const r = scrub([{a: 5, b: Symbol('hello')}])
+  const r = scrub([{ a: new Map([['b', 'c']]) }]) // todo: Set
+  console.log(r)
 })

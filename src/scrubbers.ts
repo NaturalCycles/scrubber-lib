@@ -1,11 +1,5 @@
 import { ScrubberFn, ScrubbersImpl } from './scrubber.model'
 
-// open source, use something else
-export const ANONYMIZED_EMAIL = 'anonymized@email.com'
-export type emailScrubberFn = () => string
-
-export const emailScrubber: emailScrubberFn = () => ANONYMIZED_EMAIL
-
 /*
  Undefined scrubber
 
@@ -84,7 +78,6 @@ export const charsFromRightScrubber: CharsFromRightScrubberFn = (
 
 export const defaultScrubbers: ScrubbersImpl = {
   staticScrubber,
-  emailScrubber,
   isoDateStringScrubber,
   undefinedScrubber,
   charsFromRightScrubber,
