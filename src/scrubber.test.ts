@@ -1,4 +1,4 @@
-import { deepFreeze } from '@naturalcycles/js-lib'
+import { deepFreeze } from '@naturalcycles/test-lib'
 import { Scrubber } from './scrubber'
 import { ScrubberConfig, ScrubberFn, ScrubbersImpl } from './scrubber.model'
 import {
