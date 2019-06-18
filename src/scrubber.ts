@@ -11,7 +11,10 @@ export class Scrubber {
   }
 
   scrub<T extends any[]> (...data: T): T {
-    return this.applyScrubbers(data)
+    const result = this.applyScrubbers(data)
+
+    if (data.length === 1) return result[0]
+    else return result
   }
 
   private applyScrubbers<T> (data: T): T {

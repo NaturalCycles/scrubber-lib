@@ -18,6 +18,22 @@ const scrub = <T extends any[]>(
   return scrubber.scrub(...data)
 }
 
+test('returns a single object when input is a single object', () => {
+  const data = { pw: 'secret', name: 'Real Name' }
+  const scrubber = new Scrubber(configStaticScrubbersMock())
+  const result = scrubber.scrub(data)
+
+  expect(result).toEqual({ pw: 'notsecret', name: 'Jane Doe' })
+})
+
+test('returns an array with one object when input is an array with one object', () => {
+  const data = { pw: 'secret', name: 'Real Name' }
+  const scrubber = new Scrubber(configStaticScrubbersMock())
+  const result = scrubber.scrub([data])
+
+  expect(result).toEqual([{ pw: 'notsecret', name: 'Jane Doe' }])
+})
+
 test('applies to more than a field', () => {
   const data = [{ pw: 'secret', name: 'Real Name' }]
   deepFreeze(data) // Ensure data doesnt mutate
