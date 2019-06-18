@@ -9,13 +9,13 @@ import {
 } from './test/scrubber.mock'
 
 // Convenient method for initializing object and scrubbing
-const scrub = <T extends any[]>(
+const scrub = <T extends any>(
   data: T,
   cfg: ScrubberConfig = configStaticScrubbersMock(),
   additionalScrubbersImpl?: ScrubbersImpl,
-): T => {
+): [T] => {
   const scrubber = new Scrubber(cfg, additionalScrubbersImpl)
-  return scrubber.scrub(...data)
+  return scrubber.scrub(data)
 }
 
 test('returns a single object when input is a single object', () => {
