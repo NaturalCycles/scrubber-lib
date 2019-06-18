@@ -14,6 +14,14 @@ describe('undefinedScrubber', () => {
 })
 
 describe('staticScrubber', () => {
+  test.each([[undefined, 'replacement'], ['', 'replacement']])(
+    'handles undefined values "%s" > "%s"',
+    (input, replacement) => {
+      const result = staticScrubber('', { replacement: 'replacement' })
+      expect(result).toEqual(replacement)
+    },
+  )
+
   test('replaces any string with replacement', () => {
     const o = 'bar'
 
@@ -23,6 +31,14 @@ describe('staticScrubber', () => {
 })
 
 describe('isoDateStringScrubber', () => {
+  test.each([[undefined, undefined], ['', undefined]])(
+    'handles undefined values "%s" > "%s"',
+    (date, expected) => {
+      const result = isoDateStringScrubber(date, { excludeDay: true })
+      expect(result).toEqual(expected)
+    },
+  )
+
   test('scrubs only day', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeDay: true })
     expect(result).toEqual('2019-05-01')
@@ -50,6 +66,19 @@ describe('isoDateStringScrubber', () => {
 })
 
 describe('charsFromRightScrubber', () => {
+  test.each([
+    [undefined, undefined],
+    ['', undefined],
+    ['11225', '112XX'],
+    ['ABC DEF', 'ABC DXX'],
+    ['ABC', 'AXX'],
+    ['AB', 'XX'],
+    ['A', 'X'],
+  ])('anonymizes zip codes "%s" > "%s"', (zip, expected) => {
+    const result = charsFromRightScrubber(zip, { count: 2, replacement: 'X' })
+    expect(result).toEqual(expected)
+  })
+
   test('removes 2 chars', () => {
     const result = charsFromRightScrubber('76543', { count: 2, replacement: 'X' })
     expect(result).toEqual('765XX')

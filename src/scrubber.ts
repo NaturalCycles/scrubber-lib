@@ -6,7 +6,7 @@ export class Scrubber {
 
   constructor (private cfg: ScrubberConfig, additionalScrubbersImpl?: ScrubbersImpl) {
     this.scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
-    cfg = this.expandCfg(cfg)
+    this.cfg = this.expandCfg(cfg)
     this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
   }
 
@@ -21,6 +21,11 @@ export class Scrubber {
       const scrubberCurrentField = this.cfg.fields[key]
 
       if (!scrubberCurrentField) {
+        // Ignore unsupported object types
+        if (dataCopy[key] instanceof Map || dataCopy[key] instanceof Set) {
+          return
+        }
+
         // Deep traverse
         if (typeof dataCopy[key] === 'object' && dataCopy[key]) {
           dataCopy[key] = this.applyScrubbers(dataCopy[key])
