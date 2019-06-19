@@ -1,4 +1,7 @@
 import { ScrubberFn, ScrubbersImpl } from './scrubber.model'
+type NanoidGenerate = (alphabet: string, length?: number) => string
+
+const nanoidGenerate = require('nanoid/generate') as NanoidGenerate
 
 /*
  Undefined scrubber
@@ -17,7 +20,7 @@ export const undefinedScrubber: UndefinedScrubberFn = () => undefined
 export interface StaticScrubberParams {
   replacement: string
 }
-export type StaticScrubberFn = ScrubberFn<string, StaticScrubberParams>
+export type StaticScrubberFn = ScrubberFn<any, StaticScrubberParams>
 
 export const staticScrubber: StaticScrubberFn = (value, params = { replacement: '' }) =>
   params.replacement
@@ -86,3 +89,24 @@ export const defaultScrubbers: ScrubbersImpl = {
   undefinedScrubber,
   charsFromRightScrubber,
 }
+
+/*
+  Random scrubber
+
+  Uses the package nanoid to generate a random string given an alphabet and a length
+ */
+const ALPHABET_NUMBER = '0123456789'
+const ALPHABET_LOWERCASE = 'abcdefghijklmnopqrstuvwxyz'
+const ALPHABET_ALPHANUMERIC_LOWERCASE = [ALPHABET_NUMBER, ALPHABET_LOWERCASE].join('')
+
+export interface RandomScrubberParams {
+  alphabet: string
+  length: number
+}
+
+export type RandomScrubberFn = ScrubberFn<string, RandomScrubberParams>
+
+export const randomScrubber: RandomScrubberFn = (
+  value,
+  params = { alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE, length: 16 },
+) => nanoidGenerate(params.alphabet, params.length)
