@@ -91,7 +91,7 @@ export const defaultScrubbers: ScrubbersImpl = {
 }
 
 /*
-  UUID scrubber
+  Random scrubber
 
   Uses the package nanoid to generate a random string given an alphabet and a length
  */
