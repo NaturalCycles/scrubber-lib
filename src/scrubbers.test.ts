@@ -1,6 +1,7 @@
 import {
   charsFromRightScrubber,
   isoDateStringScrubber,
+  randomScrubber,
   staticScrubber,
   undefinedScrubber,
 } from './scrubbers'
@@ -87,5 +88,17 @@ describe('charsFromRightScrubber', () => {
   test('does not fail/crash if count > input length', () => {
     const result = charsFromRightScrubber('123', { count: 5, replacement: 'X' })
     expect(result).toEqual('XXX')
+  })
+})
+
+describe('randomScrubber', () => {
+  test('generates with default arguments', () => {
+    const result = randomScrubber('secret')
+    expect(result).not.toEqual('secret')
+  })
+
+  test('accepts alphabet and length', () => {
+    const result = randomScrubber('secret', { alphabet: 'a', length: 5 })
+    expect(result).toEqual('aaaaa')
   })
 })

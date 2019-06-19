@@ -16,9 +16,12 @@ import {
   CharsFromRightScrubberParams,
 } from './scrubbers'
 
+import { randomScrubber, RandomScrubberFn, RandomScrubberParams } from './scrubbers'
+
 export { Scrubber, ScrubberConfig }
-export { charsFromRightScrubber, CharsFromRightScrubberParams, CharsFromRightScrubberFn }
 
 export { undefinedScrubber, UndefinedScrubberFn }
 export { staticScrubber, StaticScrubberParams, StaticScrubberFn }
 export { isoDateStringScrubber, ISODateStringScrubberParams, ISODateStringScrubberFn }
+export { charsFromRightScrubber, CharsFromRightScrubberParams, CharsFromRightScrubberFn }
+export { randomScrubber, RandomScrubberFn, RandomScrubberParams }

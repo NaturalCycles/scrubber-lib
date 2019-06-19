@@ -1,7 +1,9 @@
 {
   "name": "@naturalcycles/scrubber-lib",
   "scripts": {},
-  "dependencies": {},
+  "dependencies": {
+    "nanoid": "^2.0.3"
+  },
   "devDependencies": {
     "@naturalcycles/dev-lib": "^7.12.0",
     "@naturalcycles/semantic-release": "^1.0.0",
