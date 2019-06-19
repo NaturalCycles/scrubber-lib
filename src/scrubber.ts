@@ -6,12 +6,15 @@ export class Scrubber {
 
   constructor (private cfg: ScrubberConfig, additionalScrubbersImpl?: ScrubbersImpl) {
     this.scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
-    cfg = this.expandCfg(cfg)
+    this.cfg = this.expandCfg(cfg)
     this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
   }
 
   scrub<T extends any[]> (...data: T): T {
-    return this.applyScrubbers(data)
+    const result = this.applyScrubbers(data)
+
+    if (data.length === 1) return result[0]
+    else return result
   }
 
   private applyScrubbers<T> (data: T): T {
@@ -21,6 +24,11 @@ export class Scrubber {
       const scrubberCurrentField = this.cfg.fields[key]
 
       if (!scrubberCurrentField) {
+        // Ignore unsupported object types
+        if (dataCopy[key] instanceof Map || dataCopy[key] instanceof Set) {
+          return
+        }
+
         // Deep traverse
         if (typeof dataCopy[key] === 'object' && dataCopy[key]) {
           dataCopy[key] = this.applyScrubbers(dataCopy[key])

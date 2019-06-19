@@ -25,18 +25,20 @@ export const staticScrubber: StaticScrubberFn = (value, params = { replacement: 
 /*
  ISO Date string scrubber
 
- excludeDay: 2019/05/25 -> 2019/05/01
- excludeMonth: 2019/05/25 -> 2019/01/25
- excludeYear: 2019/05/25 -> 1970/05/25
+ excludeDay: 2019-05-25 -> 2019-05-01
+ excludeMonth: 2019-05-25 -> 2019-01-25
+ excludeYear: 2019-05-25 -> 1970-05-25
  */
 export interface ISODateStringScrubberParams {
   excludeDay?: boolean
   excludeMonth?: boolean
   excludeYear?: boolean
 }
-export type ISODateStringScrubberFn = ScrubberFn<string, ISODateStringScrubberParams>
+export type ISODateStringScrubberFn = ScrubberFn<string | undefined, ISODateStringScrubberParams>
 
 export const isoDateStringScrubber: ISODateStringScrubberFn = (value, params = {}) => {
+  if (!value) return
+
   if (value && params.excludeDay) {
     value = value.substr(0, 8) + '01'
   }
@@ -64,12 +66,14 @@ export interface CharsFromRightScrubberParams {
   count: number
   replacement: string
 }
-export type CharsFromRightScrubberFn = ScrubberFn<string, CharsFromRightScrubberParams>
+export type CharsFromRightScrubberFn = ScrubberFn<string | undefined, CharsFromRightScrubberParams>
 
 export const charsFromRightScrubber: CharsFromRightScrubberFn = (
   value,
   params = { count: 99, replacement: 'X' },
 ) => {
+  if (!value) return
+
   const { count, replacement } = params
 
   const lengthToReplace = Math.min(count, value.length)

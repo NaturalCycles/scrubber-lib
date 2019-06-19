@@ -31,3 +31,31 @@ exports[`error handling logs errors by default 2`] = `
   ],
 }
 `;
+
+exports[`scrubs different types of data 1`] = `
+Array [
+  Object {
+    "array": Array [
+      1,
+      2,
+      Object {
+        "pw": "notsecret",
+      },
+    ],
+    "date": Object {},
+    "function": [Function],
+    "map": Map {
+      "b" => "c",
+    },
+    "null": null,
+    "set": Set {
+      1,
+      2,
+      3,
+      4,
+    },
+    "symbol": Symbol(42),
+    "undefined": undefined,
+  },
+]
+`;

@@ -9,16 +9,30 @@ import {
 } from './test/scrubber.mock'
 
 // Convenient method for initializing object and scrubbing
-const scrub = <T extends any[]>(
+const scrub = <T extends any>(
   data: T,
   cfg: ScrubberConfig = configStaticScrubbersMock(),
   additionalScrubbersImpl?: ScrubbersImpl,
-): T => {
+): [T] => {
   const scrubber = new Scrubber(cfg, additionalScrubbersImpl)
-  return scrubber.scrub(...data)
+  return scrubber.scrub(data)
 }
 
-// TODO: add test to check nulls { key: null, array, date, function }
+test('returns a single object when input is a single object', () => {
+  const data = { pw: 'secret', name: 'Real Name' }
+  const scrubber = new Scrubber(configStaticScrubbersMock())
+  const result = scrubber.scrub(data)
+
+  expect(result).toEqual({ pw: 'notsecret', name: 'Jane Doe' })
+})
+
+test('returns an array with one object when input is an array with one object', () => {
+  const data = { pw: 'secret', name: 'Real Name' }
+  const scrubber = new Scrubber(configStaticScrubbersMock())
+  const result = scrubber.scrub([data])
+
+  expect(result).toEqual([{ pw: 'notsecret', name: 'Jane Doe' }])
+})
 
 test('applies to more than a field', () => {
   const data = [{ pw: 'secret', name: 'Real Name' }]
@@ -51,9 +65,9 @@ test('applies to nested arrays', () => {
   deepFreeze(users)
 
   const result = scrub(users, configStaticScrubbersMock())
-  expect(result[0].users[0]).toEqual({ pw: 'notsecret', safe: 'shouldStay' })
-  expect(result[0].users[1]).toEqual({ name: 'Jane Doe', safe2: 'isSafe' })
-  expect(Array.isArray(result[0].users)).toBeTruthy() // makes sure we don't convert array to objects
+  expect(result[0]['users'][0]).toEqual({ pw: 'notsecret', safe: 'shouldStay' })
+  expect(result[0]['users'][1]).toEqual({ name: 'Jane Doe', safe2: 'isSafe' })
+  expect(Array.isArray(result[0]['users'])).toBeTruthy() // makes sure we don't convert array to objects
 })
 
 test('keeps not modified fields', () => {
@@ -139,8 +153,43 @@ describe('error handling', () => {
   })
 })
 
-test('scrub different types of data', () => {
-  // const r = scrub([{a: 5, b: Symbol('hello')}])
-  const r = scrub([{ a: new Map([['b', 'c']]) }]) // todo: Set
-  console.log(r)
+test('scrubs different types of data', () => {
+  const result = scrub([
+    {
+      null: null,
+      undefined,
+      array: [1, 2, { pw: 'secret' }],
+      function: () => 1,
+      symbol: Symbol(42),
+      map: new Map([['b', 'c']]),
+      set: new Set([1, 2, 3, 4]),
+      date: new Date(0),
+    },
+  ])
+
+  expect(result).toMatchSnapshot()
+})
+
+xtest('example (readme)', () => {
+  const cfg: ScrubberConfig = {
+    fields: {
+      name: {
+        scrubber: 'staticScrubber',
+        params: {
+          replacement: 'John Doe',
+        },
+      },
+      password: {
+        scrubber: 'undefinedScrubber',
+      },
+    },
+    throwOnError: true,
+  }
+
+  const object = { name: 'Real Name', password: 'secret' }
+
+  const scrubber = new Scrubber(cfg)
+  const newObject = scrubber.scrub(object)
+
+  console.log(newObject)
 })

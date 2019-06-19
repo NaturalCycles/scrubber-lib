@@ -4,8 +4,8 @@
 
 [![npm](https://img.shields.io/npm/v/@naturalcycles/scrubber-lib/latest.svg)](https://www.npmjs.com/package/@naturalcycles/scrubber-lib)
 [![](https://circleci.com/gh/NaturalCycles/scrubber-lib.svg?style=shield&circle-token=123)](https://circleci.com/gh/NaturalCycles/scrubber-lib)
-[![Maintainability](https://api.codeclimate.com/v1/badges/f0dc9286576fec8a6468/maintainability)](https://codeclimate.com/repos/5b896d73aae5fd17b200b306/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/f0dc9286576fec8a6468/test_coverage)](https://codeclimate.com/repos/5b896d73aae5fd17b200b306/test_coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/e8cd5b1b7cff8e1296fe/maintainability)](https://codeclimate.com/repos/e8cd5b1b7cff8e1296fe/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/e8cd5b1b7cff8e1296fe/test_coverage)](https://codeclimate.com/repos/e8cd5b1b7cff8e1296fe/test_coverage)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
 ## How to use
@@ -43,7 +43,7 @@ Scrub a single object:
 const object = { name: 'Real Name', password: 'secret' }
 
 const scrubber = new Scrubber(cfg)
-const scrubbedObject = scrubber.scrubSingle(object)
+const scrubbedObject = scrubber.scrub(object)
 
 // scrubbedObject =  name: 'John Doe', password: undefined }
 ```
@@ -60,8 +60,7 @@ const scrubbedObjects = scrubber.scrub(objects)
 
 ```javascript
 constructor (private cfg: ScrubberConfig, additionalScrubbersImpl?: ScrubbersImpl)
-scrub<T extends any[]> (data: T): T
-scrubSingle<T> (data: T): T
+scrub<T extends any[]> (...data: T): T
 ```
 
 ## Features
@@ -76,6 +75,19 @@ scrubSingle<T> (data: T): T
 - Supports field names to be comma-separated on configuration file
 - Error handling: all errors are logged and allows a `cfg.throwOnError` optional configuration to
   re-throw errors
+
+## Limitations
+
+- Objects of types `Map` and `Set` are currently not traversed
+
+## Vocabulary
+
+The `scrubber-lib` supports a `ScrubberConfig` parameter on initialization which is usually defined
+by clients on a `scrubber configuration file` (YAML or JSON) with multiple `scrubbing profiles`
+(such as anonymization, pseudo-anonymization, etc).
+
+The library applies `scrubber functions` to the given objects. It provides some built-in
+`scrubber functions` while also allowing custom `scrubber functions implementations`.
 
 ## Possible use cases
 
