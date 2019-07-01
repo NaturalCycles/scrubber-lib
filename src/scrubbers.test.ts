@@ -1,6 +1,7 @@
 import {
   charsFromRightScrubber,
   isoDateStringScrubber,
+  randomEmailScrubber,
   randomScrubber,
   staticScrubber,
   undefinedScrubber,
@@ -97,8 +98,30 @@ describe('randomScrubber', () => {
     expect(result).not.toEqual('secret')
   })
 
+  test('accepts length', () => {
+    const result = randomScrubber('secret', { length: 5 })
+    expect(result).toHaveLength(5)
+  })
+
   test('accepts alphabet and length', () => {
     const result = randomScrubber('secret', { alphabet: 'a', length: 5 })
     expect(result).toEqual('aaaaa')
+  })
+})
+
+describe('randomEmailScrubber', () => {
+  test('generates with default arguments', () => {
+    const result = randomEmailScrubber('secret')
+    expect(result).not.toEqual('secret')
+    expect(result).toContain('@example.com')
+  })
+
+  test('accepts alphabet, length and domain', () => {
+    const result = randomEmailScrubber('secret', {
+      alphabet: 'a',
+      length: 5,
+      domain: '@customdomain.com',
+    })
+    expect(result).toEqual('aaaaa@customdomain.com')
   })
 })

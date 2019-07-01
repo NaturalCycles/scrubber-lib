@@ -17,6 +17,7 @@ import {
 } from './scrubbers'
 
 import { randomScrubber, RandomScrubberFn, RandomScrubberParams } from './scrubbers'
+import { randomEmailScrubber, RandomEmailScrubberFn, RandomEmailScrubberParams } from './scrubbers'
 
 export { Scrubber, ScrubberConfig }
 
@@ -25,3 +26,4 @@ export { staticScrubber, StaticScrubberParams, StaticScrubberFn }
 export { isoDateStringScrubber, ISODateStringScrubberParams, ISODateStringScrubberFn }
 export { charsFromRightScrubber, CharsFromRightScrubberParams, CharsFromRightScrubberFn }
 export { randomScrubber, RandomScrubberFn, RandomScrubberParams }
+export { randomEmailScrubber, RandomEmailScrubberFn, RandomEmailScrubberParams }
