@@ -83,13 +83,6 @@ export const charsFromRightScrubber: CharsFromRightScrubberFn = (
   return value.substr(0, value.length - count) + replacement.repeat(lengthToReplace)
 }
 
-export const defaultScrubbers: ScrubbersImpl = {
-  staticScrubber,
-  isoDateStringScrubber,
-  undefinedScrubber,
-  charsFromRightScrubber,
-}
-
 /*
   Random scrubber
 
@@ -100,13 +93,46 @@ const ALPHABET_LOWERCASE = 'abcdefghijklmnopqrstuvwxyz'
 const ALPHABET_ALPHANUMERIC_LOWERCASE = [ALPHABET_NUMBER, ALPHABET_LOWERCASE].join('')
 
 export interface RandomScrubberParams {
-  alphabet: string
-  length: number
+  alphabet?: string
+  length?: number
 }
 
 export type RandomScrubberFn = ScrubberFn<string, RandomScrubberParams>
 
-export const randomScrubber: RandomScrubberFn = (
-  value,
-  params = { alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE, length: 16 },
-) => nanoidGenerate(params.alphabet, params.length)
+export const randomScrubber: RandomScrubberFn = (value, additionalParams) => {
+  const params = { alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE, length: 16, ...additionalParams }
+  return nanoidGenerate(params.alphabet, params['length'])
+}
+
+/*
+  Random email scrubber
+
+  Uses the package nanoid to generate a random string given an alphabet and a length
+  and appends a given domain (should include '@') at the end of it
+ */
+export interface RandomEmailScrubberParams {
+  alphabet?: string
+  length?: number
+  domain?: string
+}
+
+export type RandomEmailScrubberFn = ScrubberFn<string, RandomEmailScrubberParams>
+
+export const randomEmailScrubber: RandomEmailScrubberFn = (value, additionalParams) => {
+  const params = {
+    alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE,
+    length: 16,
+    domain: '@example.com',
+    ...additionalParams,
+  }
+  return nanoidGenerate(params.alphabet, params['length']) + params.domain
+}
+
+export const defaultScrubbers: ScrubbersImpl = {
+  staticScrubber,
+  isoDateStringScrubber,
+  undefinedScrubber,
+  charsFromRightScrubber,
+  randomScrubber,
+  randomEmailScrubber,
+}
