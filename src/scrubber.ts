@@ -10,11 +10,8 @@ export class Scrubber {
     this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
   }
 
-  scrub<T extends any[]> (...data: T): T {
-    const result = this.applyScrubbers(data)
-
-    if (data.length === 1) return result[0]
-    else return result
+  scrub<T> (data: T): T {
+    return this.applyScrubbers(data)
   }
 
   private applyScrubbers<T> (data: T): T {
