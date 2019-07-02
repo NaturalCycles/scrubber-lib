@@ -60,7 +60,7 @@ const scrubbedObjects = scrubber.scrub(objects)
 
 ```javascript
 constructor (private cfg: ScrubberConfig, additionalScrubbersImpl?: ScrubbersImpl)
-scrub<T extends any[]> (...data: T): T
+scrub<T> (data: T): T
 ```
 
 ## Features

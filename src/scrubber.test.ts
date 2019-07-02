@@ -9,11 +9,11 @@ import {
 } from './test/scrubber.mock'
 
 // Convenient method for initializing object and scrubbing
-const scrub = <T extends any>(
+const scrub = <T>(
   data: T,
   cfg: ScrubberConfig = configStaticScrubbersMock(),
   additionalScrubbersImpl?: ScrubbersImpl,
-): [T] => {
+): T => {
   const scrubber = new Scrubber(cfg, additionalScrubbersImpl)
   return scrubber.scrub(data)
 }
