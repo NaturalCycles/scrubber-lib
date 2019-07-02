@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/NaturalCycles/scrubber-lib/compare/v1.2.0...v2.0.0) (2019-07-02)
+
+
+### Features
+
+* simplify return type ([#5](https://github.com/NaturalCycles/scrubber-lib/issues/5)) ([8922267](https://github.com/NaturalCycles/scrubber-lib/commit/8922267))
+
+
+### BREAKING CHANGES
+
+* public API changed
+
 # [1.2.0](https://github.com/NaturalCycles/scrubber-lib/compare/v1.1.0...v1.2.0) (2019-07-01)
 
 
