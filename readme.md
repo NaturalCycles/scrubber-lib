@@ -84,7 +84,7 @@ scrub<T> (data: T): T
 
 The `scrubber-lib` supports a `ScrubberConfig` parameter on initialization which is usually defined
 by clients on a `scrubber configuration file` (YAML or JSON) with multiple `scrubbing profiles`
-(such as anonymization, pseudo-anonymization, etc).
+(such as anonymization, pseudonymization, etc).
 
 The library applies `scrubber functions` to the given objects. It provides some built-in
 `scrubber functions` while also allowing custom `scrubber functions implementations`.
