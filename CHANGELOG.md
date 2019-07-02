@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/NaturalCycles/scrubber-lib/compare/v1.1.0...v1.2.0) (2019-07-01)
+
+
+### Features
+
+* add random email scrubber ([#4](https://github.com/NaturalCycles/scrubber-lib/issues/4)) ([e876f09](https://github.com/NaturalCycles/scrubber-lib/commit/e876f09))
+
 # [1.1.0](https://github.com/NaturalCycles/scrubber-lib/compare/v1.0.0...v1.1.0) (2019-06-19)
 
 
