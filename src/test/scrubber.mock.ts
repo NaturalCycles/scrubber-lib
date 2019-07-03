@@ -16,6 +16,7 @@ export function configStaticScrubbersMock (): ScrubberConfig {
         },
       },
     },
+    preserveFalsy: false,
   }
 }
 
@@ -29,6 +30,7 @@ export function configMultiFieldMock (): ScrubberConfig {
         },
       },
     },
+    preserveFalsy: false,
   }
 }
 
@@ -42,6 +44,7 @@ export function configEmailScrubberMock (): ScrubberConfig {
         },
       },
     },
+    preserveFalsy: false,
   }
 }
 
@@ -52,5 +55,6 @@ export function configInvalidScrubberMock (): ScrubberConfig {
         scrubber: 'nonExistingScrubber',
       },
     },
+    preserveFalsy: false,
   }
 }

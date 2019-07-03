@@ -116,6 +116,40 @@ test('fails when scrubber from config is not found (even if not used)', () => {
   }).toThrow()
 })
 
+describe('falsy values handling', () => {
+  const cfg: ScrubberConfig = {
+    fields: {
+      target: {
+        scrubber: 'undefinedScrubber',
+      },
+    },
+  }
+
+  test.each([-1, true, false, undefined, '', 0, null, NaN])(
+    'does not preserve "%s" if configuration is false',
+    input => {
+      const cfgWithPreserveDisabled: ScrubberConfig = { ...cfg, preserveFalsy: false }
+
+      const scrubber = new Scrubber(cfgWithPreserveDisabled)
+      const result = scrubber.scrub({ target: input })
+
+      expect(result.target).toBeUndefined()
+    },
+  )
+
+  test.each([false, undefined, '', 0, null, NaN])(
+    'preserves "%s" if configuration is true',
+    input => {
+      const cfgWithPreserveEnabled: ScrubberConfig = { ...cfg, preserveFalsy: true }
+
+      const scrubber = new Scrubber(cfgWithPreserveEnabled)
+      const result = scrubber.scrub({ target: input })
+
+      expect(result.target).toEqual(input)
+    },
+  )
+})
+
 describe('error handling', () => {
   const faultyScrubber: ScrubberFn = () => {
     throw Error('ops')
@@ -170,7 +204,36 @@ test('scrubs different types of data', () => {
   expect(result).toMatchSnapshot()
 })
 
-xtest('example (readme)', () => {
+test('initializationVector is passed as param to scrubbers', () => {
+  const mockScrubber = jest.fn(() => 'modified') as any
+  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+
+  const cfg: ScrubberConfig = {
+    fields: {
+      pw: {
+        scrubber: 'aNewScrubber',
+      },
+    },
+  }
+
+  const data = [{ pw: 'secret' }]
+  deepFreeze(data) // Ensure data doesnt mutate
+
+  const scrubber = new Scrubber(cfg, additionalScrubbers)
+  scrubber.scrub(data)
+
+  expect(mockScrubber).toHaveBeenLastCalledWith('secret', {
+    initializationVector: expect.any(String),
+  })
+  scrubber.scrub(data)
+
+  const vector1 = mockScrubber.mock.calls[0][1]
+  const vector2 = mockScrubber.mock.calls[1][1]
+
+  expect(vector1).toEqual(vector2)
+})
+
+test('example (readme)', () => {
   const cfg: ScrubberConfig = {
     fields: {
       name: {

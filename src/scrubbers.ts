@@ -1,3 +1,4 @@
+import * as crypto from 'crypto'
 import { ScrubberFn, ScrubbersImpl } from './scrubber.model'
 type NanoidGenerate = (alphabet: string, length?: number) => string
 
@@ -58,6 +59,45 @@ export const isoDateStringScrubber: ISODateStringScrubberFn = (value, params = {
 }
 
 // TODO: unixTimestampScrubber (unix or ms) that also allows day, month anonymization
+/*
+ Unix timestamp (timestamp in seconds) scrubber
+ */
+export interface UnixTimestampScrubberParams {
+  excludeTime?: boolean
+  excludeDay?: boolean
+  excludeMonth?: boolean
+  excludeYear?: boolean
+}
+export type UnixTimestampScrubberFn = ScrubberFn<
+  number | string | undefined,
+  UnixTimestampScrubberParams
+>
+
+export const unixTimestampScrubber: UnixTimestampScrubberFn = (value, params = {}) => {
+  if (!value) return
+
+  const date = new Date((value as number) * 1000)
+
+  if (value && params.excludeTime) {
+    date.setSeconds(0)
+    date.setMinutes(0)
+    date.setHours(0)
+  }
+
+  if (value && params.excludeDay) {
+    date.setDate(1)
+  }
+
+  if (value && params.excludeMonth) {
+    date.setMonth(0)
+  }
+
+  if (value && params.excludeYear) {
+    date.setFullYear(1970)
+  }
+
+  return Math.round(date.getTime() / 1000)
+}
 
 /*
   Chars From Right scrubber
@@ -128,6 +168,29 @@ export const randomEmailScrubber: RandomEmailScrubberFn = (value, additionalPara
   return nanoidGenerate(params.alphabet, params['length']) + params.domain
 }
 
+/*
+  Salted hash scrubber.
+
+  Takes an initializationVector param and uses it to salt the value before hashing it.
+ */
+export interface SaltedHashScrubberParams {
+  initializationVector: string
+}
+
+export type SaltedHashScrubberFn = ScrubberFn<string, SaltedHashScrubberParams>
+
+export const saltedHashScrubber: SaltedHashScrubberFn = (value, params) => {
+  if (!params || !params.initializationVector) {
+    throw new Error('Initialization vector is missing')
+  }
+
+  return crypto
+    .createHash('sha256')
+    .update(value)
+    .update(params.initializationVector)
+    .digest('hex')
+}
+
 export const defaultScrubbers: ScrubbersImpl = {
   staticScrubber,
   isoDateStringScrubber,
@@ -135,4 +198,5 @@ export const defaultScrubbers: ScrubbersImpl = {
   charsFromRightScrubber,
   randomScrubber,
   randomEmailScrubber,
+  saltedHashScrubber,
 }

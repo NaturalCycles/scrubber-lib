@@ -3,9 +3,14 @@ import {
   isoDateStringScrubber,
   randomEmailScrubber,
   randomScrubber,
+  saltedHashScrubber,
   staticScrubber,
   undefinedScrubber,
+  unixTimestampScrubber,
 } from './scrubbers'
+
+type Nanoid = () => string
+const nanoid = require('nanoid') as Nanoid
 
 describe('undefinedScrubber', () => {
   test('replaces any value with undefined', () => {
@@ -29,6 +34,51 @@ describe('staticScrubber', () => {
 
     expect(staticScrubber('', { replacement: o })).toEqual(o)
     expect(staticScrubber('foo', { replacement: o })).toEqual(o)
+  })
+})
+
+describe('unixTimestampScrubber', () => {
+  test.each([[undefined, undefined], ['', undefined]])(
+    'handles undefined values "%s" > "%s"',
+    (date, expected) => {
+      const result = unixTimestampScrubber(date, { excludeDay: true })
+      expect(result).toEqual(expected)
+    },
+  )
+
+  test('scrubs only time (string)', () => {
+    // Wednesday, July 3, 2019 9:35:21 AM to
+    // Wednesday, July 3, 2019 00:00:00 AM
+    const result = unixTimestampScrubber('1562146521', { excludeTime: true })
+    expect(result).toEqual(1562112000)
+  })
+
+  test('scrubs only time', () => {
+    // Wednesday, July 3, 2019 9:35:21 AM to
+    // Wednesday, July 3, 2019 00:00:00 AM
+    const result = unixTimestampScrubber(1562146521, { excludeTime: true })
+    expect(result).toEqual(1562112000)
+  })
+
+  test('scrubs only day', () => {
+    // Wednesday, July 3, 2019 9:35:21 AM to
+    // Wednesday, July 1, 2019 9:35:21 AM
+    const result = unixTimestampScrubber(1562146521, { excludeDay: true })
+    expect(result).toEqual(1561973721)
+  })
+
+  test('scrubs day and month', () => {
+    // Wednesday, July 3, 2019 9:35:21 AM to
+    // Wednesday, January 1, 2019 9:35:21 AM
+    const result = unixTimestampScrubber(1562146521, { excludeDay: true, excludeMonth: true })
+    expect(result).toEqual(1546335321)
+  })
+
+  test('scrubs only year', () => {
+    // Wednesday, July 3, 2019 9:35:21 AM to
+    // Wednesday, July 3, 1970 9:35:21 AM
+    const result = unixTimestampScrubber(1562146521, { excludeYear: true })
+    expect(result).toEqual(15845721)
   })
 })
 
@@ -123,5 +173,21 @@ describe('randomEmailScrubber', () => {
       domain: '@customdomain.com',
     })
     expect(result).toEqual('aaaaa@customdomain.com')
+  })
+})
+
+describe('saltedHashScrubber', () => {
+  test('generates hash using initializationVector', () => {
+    const initializationVector = nanoid()
+
+    const result = saltedHashScrubber('secret', { initializationVector })
+    expect(result).not.toEqual('secret')
+
+    const result2 = saltedHashScrubber('secret', { initializationVector })
+    expect(result).toEqual(result2)
+
+    const initializationVector2 = nanoid()
+    const result3 = saltedHashScrubber('secret', { initializationVector: initializationVector2 })
+    expect(result).not.toEqual(result3)
   })
 })

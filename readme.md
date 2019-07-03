@@ -33,7 +33,8 @@ const cfg: ScrubberConfig = {
       scrubber: 'undefinedScrubber',
     },
   },
-  throwOnError: true,
+  throwOnError: true, // default: false,
+  preserveFalsy: false, // default: true
 }
 ```
 
@@ -75,6 +76,10 @@ scrub<T> (data: T): T
 - Supports field names to be comma-separated on configuration file
 - Error handling: all errors are logged and allows a `cfg.throwOnError` optional configuration to
   re-throw errors
+- Falsy values: allows a `cfg.preserveFalsy` optional configuration to control if falsy values
+  should be preserved or passed to scrubber functions. When inspecting scrubbed objects for
+  debugging purposes, it might be useful to set it to `true` to identify potential interesting
+  fields
 
 ## Limitations
 
