@@ -194,6 +194,7 @@ export const saltedHashScrubber: SaltedHashScrubberFn = (value, params) => {
 export const defaultScrubbers: ScrubbersImpl = {
   staticScrubber,
   isoDateStringScrubber,
+  unixTimestampScrubber,
   undefinedScrubber,
   charsFromRightScrubber,
   randomScrubber,
