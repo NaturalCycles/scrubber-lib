@@ -59,6 +59,45 @@ export const isoDateStringScrubber: ISODateStringScrubberFn = (value, params = {
 }
 
 // TODO: unixTimestampScrubber (unix or ms) that also allows day, month anonymization
+/*
+ Unix timestamp (timestamp in seconds) scrubber
+ */
+export interface UnixTimestampScrubberParams {
+  excludeTime?: boolean
+  excludeDay?: boolean
+  excludeMonth?: boolean
+  excludeYear?: boolean
+}
+export type UnixTimestampScrubberFn = ScrubberFn<
+  number | string | undefined,
+  UnixTimestampScrubberParams
+>
+
+export const unixTimestampScrubber: UnixTimestampScrubberFn = (value, params = {}) => {
+  if (!value) return
+
+  const date = new Date((value as number) * 1000)
+
+  if (value && params.excludeTime) {
+    date.setSeconds(0)
+    date.setMinutes(0)
+    date.setHours(0)
+  }
+
+  if (value && params.excludeDay) {
+    date.setDate(1)
+  }
+
+  if (value && params.excludeMonth) {
+    date.setMonth(0)
+  }
+
+  if (value && params.excludeYear) {
+    date.setFullYear(1970)
+  }
+
+  return Math.round(date.getTime() / 1000)
+}
 
 /*
   Chars From Right scrubber

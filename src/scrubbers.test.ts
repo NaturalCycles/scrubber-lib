@@ -6,6 +6,7 @@ import {
   saltedHashScrubber,
   staticScrubber,
   undefinedScrubber,
+  unixTimestampScrubber,
 } from './scrubbers'
 
 type Nanoid = () => string
@@ -33,6 +34,51 @@ describe('staticScrubber', () => {
 
     expect(staticScrubber('', { replacement: o })).toEqual(o)
     expect(staticScrubber('foo', { replacement: o })).toEqual(o)
+  })
+})
+
+describe('unixTimestampScrubber', () => {
+  test.each([[undefined, undefined], ['', undefined]])(
+    'handles undefined values "%s" > "%s"',
+    (date, expected) => {
+      const result = unixTimestampScrubber(date, { excludeDay: true })
+      expect(result).toEqual(expected)
+    },
+  )
+
+  test('scrubs only time (string)', () => {
+    // Wednesday, July 3, 2019 9:35:21 AM to
+    // Wednesday, July 3, 2019 00:00:00 AM
+    const result = unixTimestampScrubber('1562146521', { excludeTime: true })
+    expect(result).toEqual(1562112000)
+  })
+
+  test('scrubs only time', () => {
+    // Wednesday, July 3, 2019 9:35:21 AM to
+    // Wednesday, July 3, 2019 00:00:00 AM
+    const result = unixTimestampScrubber(1562146521, { excludeTime: true })
+    expect(result).toEqual(1562112000)
+  })
+
+  test('scrubs only day', () => {
+    // Wednesday, July 3, 2019 9:35:21 AM to
+    // Wednesday, July 1, 2019 9:35:21 AM
+    const result = unixTimestampScrubber(1562146521, { excludeDay: true })
+    expect(result).toEqual(1561973721)
+  })
+
+  test('scrubs day and month', () => {
+    // Wednesday, July 3, 2019 9:35:21 AM to
+    // Wednesday, January 1, 2019 9:35:21 AM
+    const result = unixTimestampScrubber(1562146521, { excludeDay: true, excludeMonth: true })
+    expect(result).toEqual(1546335321)
+  })
+
+  test('scrubs only year', () => {
+    // Wednesday, July 3, 2019 9:35:21 AM to
+    // Wednesday, July 3, 1970 9:35:21 AM
+    const result = unixTimestampScrubber(1562146521, { excludeYear: true })
+    expect(result).toEqual(15845721)
   })
 })
 
