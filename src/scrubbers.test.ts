@@ -179,10 +179,13 @@ describe('randomEmailScrubber', () => {
 describe('saltedHashScrubber', () => {
   test('generates hash using initializationVector', () => {
     const initializationVector = nanoid()
+
     const result = saltedHashScrubber('secret', { initializationVector })
     expect(result).not.toEqual('secret')
+
     const result2 = saltedHashScrubber('secret', { initializationVector })
     expect(result).toEqual(result2)
+
     const initializationVector2 = nanoid()
     const result3 = saltedHashScrubber('secret', { initializationVector: initializationVector2 })
     expect(result).not.toEqual(result3)

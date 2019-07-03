@@ -179,10 +179,11 @@ export interface SaltedHashScrubberParams {
 
 export type SaltedHashScrubberFn = ScrubberFn<string, SaltedHashScrubberParams>
 
-export const saltedHashScrubber: SaltedHashScrubberFn = (value, additionalParams) => {
-  const params = {
-    ...additionalParams,
-  } as SaltedHashScrubberParams
+export const saltedHashScrubber: SaltedHashScrubberFn = (value, params) => {
+  if (!params || !params.initializationVector) {
+    throw new Error('Initialization vector is missing')
+  }
+
   return crypto
     .createHash('sha256')
     .update(value)
