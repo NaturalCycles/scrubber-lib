@@ -171,7 +171,7 @@ test('scrubs different types of data', () => {
 })
 
 test('initializationVector is passed as param to all scrubbers', () => {
-  const mockScrubber = jest.fn(() => 'modified')
+  const mockScrubber = jest.fn(() => 'modified') as any
   const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
