@@ -1,3 +1,4 @@
+import * as crypto from 'crypto'
 import { ScrubberFn, ScrubbersImpl } from './scrubber.model'
 type NanoidGenerate = (alphabet: string, length?: number) => string
 
@@ -128,6 +129,28 @@ export const randomEmailScrubber: RandomEmailScrubberFn = (value, additionalPara
   return nanoidGenerate(params.alphabet, params['length']) + params.domain
 }
 
+/*
+  Salted hash scrubber.
+
+  Takes an initializationVector param and uses it to salt the value before hashing it.
+ */
+export interface SaltedHashScrubberParams {
+  initializationVector: string
+}
+
+export type SaltedHashScrubberFn = ScrubberFn<string, SaltedHashScrubberParams>
+
+export const saltedHashScrubber: SaltedHashScrubberFn = (value, additionalParams) => {
+  const params = {
+    ...additionalParams,
+  } as SaltedHashScrubberParams
+  return crypto
+    .createHash('sha256')
+    .update(value)
+    .update(params.initializationVector)
+    .digest('hex')
+}
+
 export const defaultScrubbers: ScrubbersImpl = {
   staticScrubber,
   isoDateStringScrubber,
@@ -135,4 +158,5 @@ export const defaultScrubbers: ScrubbersImpl = {
   charsFromRightScrubber,
   randomScrubber,
   randomEmailScrubber,
+  saltedHashScrubber,
 }

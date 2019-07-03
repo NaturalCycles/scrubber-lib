@@ -3,9 +3,13 @@ import {
   isoDateStringScrubber,
   randomEmailScrubber,
   randomScrubber,
+  saltedHashScrubber,
   staticScrubber,
   undefinedScrubber,
 } from './scrubbers'
+
+type Nanoid = () => string
+const nanoid = require('nanoid') as Nanoid
 
 describe('undefinedScrubber', () => {
   test('replaces any value with undefined', () => {
@@ -123,5 +127,18 @@ describe('randomEmailScrubber', () => {
       domain: '@customdomain.com',
     })
     expect(result).toEqual('aaaaa@customdomain.com')
+  })
+})
+
+describe('saltedHashScrubber', () => {
+  test('generates hash using initializationVector', () => {
+    const initializationVector = nanoid()
+    const result = saltedHashScrubber('secret', { initializationVector })
+    expect(result).not.toEqual('secret')
+    const result2 = saltedHashScrubber('secret', { initializationVector })
+    expect(result).toEqual(result2)
+    const initializationVector2 = nanoid()
+    const result3 = saltedHashScrubber('secret', { initializationVector: initializationVector2 })
+    expect(result).not.toEqual(result3)
   })
 })

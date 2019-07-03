@@ -1,10 +1,15 @@
 import { ScrubberConfig, ScrubbersImpl } from './scrubber.model'
 import { defaultScrubbers } from './scrubbers'
 
+type Nanoid = () => string
+const nanoid = require('nanoid') as Nanoid
+
 export class Scrubber {
   private readonly scrubbers: ScrubbersImpl
+  private readonly initializationVector: string
 
   constructor (private cfg: ScrubberConfig, additionalScrubbersImpl?: ScrubbersImpl) {
+    this.initializationVector = nanoid()
     this.scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
     this.cfg = this.expandCfg(cfg)
     this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
@@ -35,7 +40,10 @@ export class Scrubber {
       }
 
       const scrubber = this.scrubbers[scrubberCurrentField.scrubber]
-      const { params } = scrubberCurrentField
+      const params = {
+        ...scrubberCurrentField.params,
+        initializationVector: this.initializationVector,
+      }
 
       // Always log on errors, re-throw if enabled on config
       try {

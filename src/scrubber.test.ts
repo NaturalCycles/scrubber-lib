@@ -170,7 +170,33 @@ test('scrubs different types of data', () => {
   expect(result).toMatchSnapshot()
 })
 
-xtest('example (readme)', () => {
+test('initializationVector is passed as param to all scrubbers', () => {
+  const mockScrubber = jest.fn(() => 'modified')
+  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+
+  const cfg: ScrubberConfig = {
+    fields: {
+      pw: {
+        scrubber: 'aNewScrubber',
+      },
+    },
+  }
+
+  const data = [{ pw: 'secret', name: 'Real Name' }]
+  deepFreeze(data) // Ensure data doesnt mutate
+
+  const scrubber = new Scrubber(cfg, additionalScrubbers)
+  scrubber.scrub(data)
+  expect(mockScrubber).toHaveBeenCalledWith('secret', { initializationVector: expect.any(String) })
+  const vector1 = mockScrubber.mock.calls[0][1]
+
+  scrubber.scrub(data)
+  const vector2 = mockScrubber.mock.calls[1][1]
+
+  expect(vector1).toEqual(vector2)
+})
+
+test('example (readme)', () => {
   const cfg: ScrubberConfig = {
     fields: {
       name: {
