@@ -116,6 +116,40 @@ test('fails when scrubber from config is not found (even if not used)', () => {
   }).toThrow()
 })
 
+describe('falsy values handling', () => {
+  const cfg: ScrubberConfig = {
+    fields: {
+      target: {
+        scrubber: 'undefinedScrubber',
+      },
+    },
+  }
+
+  test.each([-1, true, false, undefined, '', 0, null, NaN])(
+    'does not preserve "%s" if configuration is false',
+    input => {
+      const cfgWithPreserveDisabled: ScrubberConfig = { ...cfg, preserveFalsy: false }
+
+      const scrubber = new Scrubber(cfgWithPreserveDisabled)
+      const result = scrubber.scrub({ target: input })
+
+      expect(result.target).toBeUndefined()
+    },
+  )
+
+  test.each([false, undefined, '', 0, null, NaN])(
+    'preserves "%s" if configuration is true',
+    input => {
+      const cfgWithPreserveEnabled: ScrubberConfig = { ...cfg, preserveFalsy: true }
+
+      const scrubber = new Scrubber(cfgWithPreserveEnabled)
+      const result = scrubber.scrub({ target: input })
+
+      expect(result.target).toEqual(input)
+    },
+  )
+})
+
 describe('error handling', () => {
   const faultyScrubber: ScrubberFn = () => {
     throw Error('ops')
