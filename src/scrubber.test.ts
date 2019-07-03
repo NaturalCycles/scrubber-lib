@@ -1,12 +1,16 @@
 import { deepFreeze } from '@naturalcycles/test-lib'
 import { Scrubber } from './scrubber'
 import { ScrubberConfig, ScrubberFn, ScrubbersImpl } from './scrubber.model'
+import { saltedHashScrubber } from './scrubbers'
 import {
   configEmailScrubberMock,
   configInvalidScrubberMock,
   configMultiFieldMock,
   configStaticScrubbersMock,
 } from './test/scrubber.mock'
+
+type Nanoid = () => string
+const nanoid = require('nanoid') as Nanoid
 
 // Convenient method for initializing object and scrubbing
 const scrub = <T>(
@@ -231,6 +235,39 @@ test('initializationVector is passed as param to scrubbers', () => {
   const vector2 = mockScrubber.mock.calls[1][1]
 
   expect(vector1).toEqual(vector2)
+})
+
+test('initializationVector passed to scrubber constructor is passed to scrubbers', () => {
+  const mockScrubber = jest.fn(saltedHashScrubber) as any
+  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+
+  const cfg: ScrubberConfig = {
+    fields: {
+      id: {
+        scrubber: 'aNewScrubber',
+      },
+    },
+  }
+
+  const toBeSalted = 'id1'
+  const data = [{ id: toBeSalted }]
+  const initializationVector = nanoid()
+  const scrubber1 = new Scrubber(cfg, additionalScrubbers, initializationVector)
+  scrubber1.scrub(data)
+  expect(mockScrubber).toHaveBeenCalledWith(toBeSalted, {
+    initializationVector: expect.stringMatching(initializationVector),
+  })
+  const vector1 = mockScrubber.mock.calls[0][1]
+  const result1 = mockScrubber.mock.results[0].value
+
+  const scrubber2 = new Scrubber(cfg, additionalScrubbers, initializationVector)
+  scrubber2.scrub(data)
+  const vector2 = mockScrubber.mock.calls[1][1]
+  const result2 = mockScrubber.mock.results[1].value
+
+  expect(vector1).toEqual(vector2)
+  expect(result1).not.toEqual(toBeSalted)
+  expect(result1).toEqual(result2)
 })
 
 test('example (readme)', () => {
