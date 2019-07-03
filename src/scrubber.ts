@@ -8,10 +8,14 @@ export class Scrubber {
   private readonly scrubbers: ScrubbersImpl
   private readonly initializationVector: string
 
-  constructor (private cfg: ScrubberConfig, additionalScrubbersImpl?: ScrubbersImpl) {
+  constructor (
+    private cfg: ScrubberConfig,
+    additionalScrubbersImpl?: ScrubbersImpl,
+    initialzationVector?: string,
+  ) {
     const defaultCfg: Partial<ScrubberConfig> = { throwOnError: false, preserveFalsy: true }
 
-    this.initializationVector = nanoid()
+    this.initializationVector = initialzationVector ? initialzationVector : nanoid()
     this.scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
     this.cfg = { ...defaultCfg, ...this.expandCfg(cfg) }
     this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
