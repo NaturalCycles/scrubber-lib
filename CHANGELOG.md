@@ -1,3 +1,17 @@
+# [2.1.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.0.0...v2.1.0) (2019-07-03)
+
+
+### Bug Fixes
+
+* as any magic ([c74d29c](https://github.com/NaturalCycles/scrubber-lib/commit/c74d29c))
+
+
+### Features
+
+* add cfg.preserveFalsy ([6538a78](https://github.com/NaturalCycles/scrubber-lib/commit/6538a78))
+* add unixTimestampScrubber ([462bd5c](https://github.com/NaturalCycles/scrubber-lib/commit/462bd5c))
+* saltedHashScrubber ([2809466](https://github.com/NaturalCycles/scrubber-lib/commit/2809466))
+
 # [2.0.0](https://github.com/NaturalCycles/scrubber-lib/compare/v1.2.0...v2.0.0) (2019-07-02)
 
 
