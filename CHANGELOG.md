@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.2.0...v2.3.0) (2019-07-03)
+
+
+### Features
+
+* add support for passing initializationVector ([df0c31b](https://github.com/NaturalCycles/scrubber-lib/commit/df0c31b))
+
 # [2.2.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.1.0...v2.2.0) (2019-07-03)
 
 
