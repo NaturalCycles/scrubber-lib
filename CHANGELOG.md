@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.1.0...v2.2.0) (2019-07-03)
+
+
+### Features
+
+* update default scrubbers ([#7](https://github.com/NaturalCycles/scrubber-lib/issues/7)) ([d38e940](https://github.com/NaturalCycles/scrubber-lib/commit/d38e940))
+
 # [2.1.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.0.0...v2.1.0) (2019-07-03)
 
 
