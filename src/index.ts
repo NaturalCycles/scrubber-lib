@@ -11,6 +11,12 @@ import {
 } from './scrubbers'
 
 import {
+  unixTimestampScrubber,
+  UnixTimestampScrubberFn,
+  UnixTimestampScrubberParams,
+} from './scrubbers'
+
+import {
   charsFromRightScrubber,
   CharsFromRightScrubberFn,
   CharsFromRightScrubberParams,
@@ -18,12 +24,15 @@ import {
 
 import { randomScrubber, RandomScrubberFn, RandomScrubberParams } from './scrubbers'
 import { randomEmailScrubber, RandomEmailScrubberFn, RandomEmailScrubberParams } from './scrubbers'
+import { saltedHashScrubber, SaltedHashScrubberFn, SaltedHashScrubberParams } from './scrubbers'
 
 export { Scrubber, ScrubberConfig }
 
 export { undefinedScrubber, UndefinedScrubberFn }
 export { staticScrubber, StaticScrubberParams, StaticScrubberFn }
-export { isoDateStringScrubber, ISODateStringScrubberParams, ISODateStringScrubberFn }
-export { charsFromRightScrubber, CharsFromRightScrubberParams, CharsFromRightScrubberFn }
+export { unixTimestampScrubber, UnixTimestampScrubberFn, UnixTimestampScrubberParams }
+export { isoDateStringScrubber, ISODateStringScrubberFn, ISODateStringScrubberParams }
+export { charsFromRightScrubber, CharsFromRightScrubberFn, CharsFromRightScrubberParams }
 export { randomScrubber, RandomScrubberFn, RandomScrubberParams }
 export { randomEmailScrubber, RandomEmailScrubberFn, RandomEmailScrubberParams }
+export { saltedHashScrubber, SaltedHashScrubberFn, SaltedHashScrubberParams }
