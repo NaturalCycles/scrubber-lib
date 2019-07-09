@@ -169,6 +169,38 @@ export const randomEmailScrubber: RandomEmailScrubberFn = (value, additionalPara
 }
 
 /*
+  Random email in content scrubber
+
+  Extends the random email scrubber and allows scrubbing emails within strings while maintaining the rest of the string
+ */
+export interface RandomEmailInContentScrubberParams {
+  alphabet?: string
+  length?: number
+  domain?: string
+}
+
+export type RandomEmailInContentScrubberFn = ScrubberFn<string, RandomEmailInContentScrubberParams>
+
+export const randomEmailInContentScrubber: RandomEmailInContentScrubberFn = (
+  value,
+  additionalParams,
+) => {
+  // Email regex, allows letters
+  const emailRegex = /([a-zA-Z1-9\._-]*@[a-zA-Z1-9_-]*.[a-zA-Z_-]{2,3})/
+  const matches = emailRegex.exec(value)
+  if (!matches) {
+    // No email found, return as is
+    return value
+  } else {
+    // Replace all matches with random email
+    const match = matches.pop() as string
+    value = value.replace(match, randomEmailScrubber(value, additionalParams))
+
+    return value
+  }
+}
+
+/*
   Salted hash scrubber.
 
   Takes an initializationVector param and uses it to salt the value before hashing it.
@@ -198,5 +230,6 @@ export const defaultScrubbers: ScrubbersImpl = {
   charsFromRightScrubber,
   randomScrubber,
   randomEmailScrubber,
+  randomEmailInContentScrubber,
   saltedHashScrubber,
 }
