@@ -1,6 +1,7 @@
 import {
   charsFromRightScrubber,
   isoDateStringScrubber,
+  randomEmailInContentScrubber,
   randomEmailScrubber,
   randomScrubber,
   saltedHashScrubber,
@@ -173,6 +174,27 @@ describe('randomEmailScrubber', () => {
       domain: '@customdomain.com',
     })
     expect(result).toEqual('aaaaa@customdomain.com')
+  })
+})
+
+describe('randomEmailInContentScrubber', () => {
+  test('scrub email in URL', () => {
+    const email = 'real@gmail.com'
+    const prefix = '/api/user/'
+    const result = randomEmailInContentScrubber(prefix + email)
+    expect(result).not.toContain(email)
+    expect(result).toContain(prefix)
+  })
+
+  test('scrub complex email in text', () => {
+    const email = 'real_email-address.2@gmail2.com'
+    const suffix = ', not a gmail2.com address'
+    const text = 'This should be a random email: ' + email + suffix
+    const result = randomEmailInContentScrubber(text)
+
+    expect(result).not.toContain(email)
+    expect(result).not.toContain('real')
+    expect(result).toContain(suffix)
   })
 })
 
