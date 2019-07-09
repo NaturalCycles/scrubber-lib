@@ -1,3 +1,15 @@
+# [2.4.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.3.0...v2.4.0) (2019-07-09)
+
+
+### Bug Fixes
+
+* escape dot in regex ([97ff850](https://github.com/NaturalCycles/scrubber-lib/commit/97ff850))
+
+
+### Features
+
+* added scrubbing of email in text ([0c181bd](https://github.com/NaturalCycles/scrubber-lib/commit/0c181bd))
+
 # [2.3.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.2.0...v2.3.0) (2019-07-03)
 
 
