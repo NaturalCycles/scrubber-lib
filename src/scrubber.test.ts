@@ -302,6 +302,34 @@ test('initializationVector passed to scrubber constructor is passed to scrubbers
   expect(result1).toEqual(result2)
 })
 
+test('supplying a initializationVector in config should take precedence', () => {
+  const configVector = '123'
+  const mockScrubber = jest.fn(saltedHashScrubber) as any
+  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+
+  const cfg: ScrubberConfig = {
+    fields: {
+      id: {
+        scrubber: 'aNewScrubber',
+        params: {
+          initializationVector: configVector,
+        },
+      },
+    },
+  }
+
+  const toBeSalted = 'id1'
+  const data = [{ id: toBeSalted }]
+  const initializationVector = nanoid()
+  const scrubber1 = new Scrubber(cfg, additionalScrubbers, initializationVector)
+  const result = scrubber1.scrub(data)
+
+  // Result should stay the same since 123 is used as init vector
+  expect(result.pop()).toEqual({
+    id: '56f968eb428383c987ee241cb9b84ee9e1c131b9c4e5370e38cce6f399d4cecd',
+  })
+})
+
 test('example (readme)', () => {
   const cfg: ScrubberConfig = {
     fields: {
