@@ -186,7 +186,7 @@ export const randomEmailInContentScrubber: RandomEmailInContentScrubberFn = (
   additionalParams,
 ) => {
   // Email regex, allows letters
-  const emailRegex = /([a-zA-Z1-9\._-]*@[a-zA-Z1-9_-]*\.[a-zA-Z_-]{2,3})/
+  const emailRegex = /([a-zA-Z1-9\._-]*@[a-zA-Z1-9\._-]*\.[a-zA-Z_-]{2,3})/
   const matches = emailRegex.exec(value)
   if (!matches) {
     // No email found, return as is
@@ -223,6 +223,31 @@ export const saltedHashScrubber: SaltedHashScrubberFn = (value, params) => {
     .digest('hex')
 }
 
+/*
+  Salted hash email scrubber.
+
+  Takes an initializationVector param and uses it to salt the value before hashing it and suffixing email domain
+ */
+export interface SaltedHashEmailScrubberParams {
+  initializationVector: string
+  domain?: string
+}
+
+export type SaltedHashEmailScrubberFn = ScrubberFn<string, SaltedHashEmailScrubberParams>
+
+export const saltedHashEmailScrubber: SaltedHashEmailScrubberFn = (value, additionalParams) => {
+  const params = {
+    domain: '@example.com',
+    ...additionalParams,
+  } as SaltedHashEmailScrubberParams
+
+  if (!params || !params.initializationVector) {
+    throw new Error('Initialization vector is missing')
+  }
+
+  return saltedHashScrubber(value, params) + params.domain
+}
+
 export const defaultScrubbers: ScrubbersImpl = {
   staticScrubber,
   isoDateStringScrubber,
@@ -233,4 +258,5 @@ export const defaultScrubbers: ScrubbersImpl = {
   randomEmailScrubber,
   randomEmailInContentScrubber,
   saltedHashScrubber,
+  saltedHashEmailScrubber,
 }

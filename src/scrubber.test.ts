@@ -1,7 +1,7 @@
 import { deepFreeze } from '@naturalcycles/test-lib'
 import { Scrubber } from './scrubber'
 import { ScrubberConfig, ScrubberFn, ScrubbersImpl } from './scrubber.model'
-import { saltedHashScrubber } from './scrubbers'
+import { saltedHashEmailScrubber, saltedHashScrubber } from './scrubbers'
 import {
   configEmailScrubberMock,
   configInvalidScrubberMock,
@@ -300,6 +300,63 @@ test('initializationVector passed to scrubber constructor is passed to scrubbers
   expect(vector1).toEqual(vector2)
   expect(result1).not.toEqual(toBeSalted)
   expect(result1).toEqual(result2)
+})
+
+test('supplying an initializationVector in config should take precedence', () => {
+  const configVector = '123'
+  const mockScrubber = jest.fn(saltedHashScrubber) as any
+  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+
+  const cfg: ScrubberConfig = {
+    fields: {
+      id: {
+        scrubber: 'aNewScrubber',
+        params: {
+          initializationVector: configVector,
+        },
+      },
+    },
+  }
+
+  const toBeSalted = 'id1'
+  const data = [{ id: toBeSalted }]
+  const initializationVector = nanoid()
+  const scrubber1 = new Scrubber(cfg, additionalScrubbers, initializationVector)
+  const result = scrubber1.scrub(data)
+
+  // Result should stay the same since 123 is used as init vector
+  expect(result.pop()).toMatchSnapshot()
+})
+
+test('supplying an initializationVector in config of saltedHashEmailScrubber should produce consistent results', () => {
+  const configVector = '123'
+  const domain = '@example.com.br'
+  const mockScrubber = jest.fn(saltedHashEmailScrubber) as any
+  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+
+  const cfg: ScrubberConfig = {
+    fields: {
+      email: {
+        scrubber: 'aNewScrubber',
+        params: {
+          initializationVector: configVector,
+          domain,
+        },
+      },
+    },
+  }
+
+  const toBeSalted = 'test@email.se'
+  const data = [{ email: toBeSalted }]
+  const scrubber1 = new Scrubber(cfg, additionalScrubbers)
+  const result = scrubber1.scrub(data).pop() as any
+
+  // Result should stay the same since config vector is static
+  expect(result).toMatchSnapshot()
+  expect(result).not.toEqual(data)
+  const emailRes = result['email']
+  expect(emailRes).toContain(domain)
+  expect(emailRes).not.toContain(toBeSalted)
 })
 
 test('example (readme)', () => {

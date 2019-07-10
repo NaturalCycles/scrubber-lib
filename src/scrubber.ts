@@ -47,8 +47,8 @@ export class Scrubber {
 
       const scrubber = this.scrubbers[scrubberCurrentField.scrubber]
       const params = {
-        ...scrubberCurrentField.params,
         initializationVector: this.initializationVector,
+        ...scrubberCurrentField.params,
       }
 
       // Always log on errors, re-throw if enabled on config
