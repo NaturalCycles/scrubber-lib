@@ -178,6 +178,12 @@ describe('randomEmailScrubber', () => {
 })
 
 describe('randomEmailInContentScrubber', () => {
+  test('scrub content without email', () => {
+    const content = 'I am a string without and email in it @hello!'
+    const result = randomEmailInContentScrubber(content)
+    expect(result).toEqual(content)
+  })
+
   test('scrub email in URL', () => {
     const email = 'real@gmail.com'
     const prefix = '/api/user/'
@@ -187,13 +193,14 @@ describe('randomEmailInContentScrubber', () => {
   })
 
   test('scrub complex email in text', () => {
-    const email = 'real_email-address.2@gmail2.com'
-    const suffix = ', not a gmail2.com address'
+    const email = 'real_email-address.2@gmail2.com.br'
+    const suffix = ', not a gmail2.com.br address'
     const text = 'This should be a random email: ' + email + suffix
     const result = randomEmailInContentScrubber(text)
 
     expect(result).not.toContain(email)
     expect(result).not.toContain('real')
+    expect(result).not.toContain('example.com.br') // test multi.dot domains
     expect(result).toContain(suffix)
   })
 })
