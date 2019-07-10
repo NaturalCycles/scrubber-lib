@@ -4,6 +4,7 @@ import {
   randomEmailInContentScrubber,
   randomEmailScrubber,
   randomScrubber,
+  saltedHashEmailScrubber,
   saltedHashScrubber,
   staticScrubber,
   undefinedScrubber,
@@ -218,5 +219,19 @@ describe('saltedHashScrubber', () => {
     const initializationVector2 = nanoid()
     const result3 = saltedHashScrubber('secret', { initializationVector: initializationVector2 })
     expect(result).not.toEqual(result3)
+  })
+})
+
+describe('saltedHashEmailScrubber', () => {
+  test('generates hash using initializationVector and suffixes domain', () => {
+    const initializationVector = 'staticvector'
+
+    const result = saltedHashEmailScrubber('secret', {
+      initializationVector,
+      domain: '@naturalcycles.com',
+    })
+    console.log(result)
+    expect(result).not.toEqual('secret')
+    expect(result).toMatchSnapshot()
   })
 })

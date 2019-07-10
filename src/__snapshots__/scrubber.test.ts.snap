@@ -59,3 +59,15 @@ Array [
   },
 ]
 `;
+
+exports[`supplying an initializationVector in config of saltedHashEmailScrubber should produce consistent results 1`] = `
+Object {
+  "email": "67a830fc650cb5c7f643db46c275f73f3c892d705be571e982826296b1c34019@example.com.br",
+}
+`;
+
+exports[`supplying an initializationVector in config should take precedence 1`] = `
+Object {
+  "id": "56f968eb428383c987ee241cb9b84ee9e1c131b9c4e5370e38cce6f399d4cecd",
+}
+`;
