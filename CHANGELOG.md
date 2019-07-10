@@ -1,3 +1,16 @@
+# [2.5.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.4.0...v2.5.0) (2019-07-10)
+
+
+### Bug Fixes
+
+* support multi-dotted domains ([8ecf825](https://github.com/NaturalCycles/scrubber-lib/commit/8ecf825))
+
+
+### Features
+
+* add salted email hashing scrubber ([ebaca11](https://github.com/NaturalCycles/scrubber-lib/commit/ebaca11))
+* scrubber param init vector should take precedence ([5234594](https://github.com/NaturalCycles/scrubber-lib/commit/5234594))
+
 # [2.4.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.3.0...v2.4.0) (2019-07-09)
 
 
