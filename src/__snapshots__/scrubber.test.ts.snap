@@ -42,6 +42,15 @@ Array [
         "pw": "notsecret",
       },
     ],
+    "buffer": Object {
+      "data": Array [
+        100,
+        97,
+        116,
+        97,
+      ],
+      "type": "Buffer",
+    },
     "date": Object {},
     "function": [Function],
     "map": Map {
