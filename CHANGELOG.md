@@ -1,3 +1,10 @@
+## [2.5.1](https://github.com/NaturalCycles/scrubber-lib/compare/v2.5.0...v2.5.1) (2019-11-07)
+
+
+### Bug Fixes
+
+* add Buffer to list of unsupported types ([2c088ac](https://github.com/NaturalCycles/scrubber-lib/commit/2c088ac3f0fa6bbda05cd5d028d0bfc5287c5522))
+
 # [2.5.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.4.0...v2.5.0) (2019-07-10)
 
 
