@@ -33,7 +33,11 @@ export class Scrubber {
 
       if (!scrubberCurrentField) {
         // Ignore unsupported object types
-        if (dataCopy[key] instanceof Map || dataCopy[key] instanceof Set) {
+        if (
+          dataCopy[key] instanceof Map ||
+          dataCopy[key] instanceof Set ||
+          dataCopy[key] instanceof Buffer
+        ) {
           return
         }
 

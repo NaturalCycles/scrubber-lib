@@ -201,6 +201,7 @@ test('scrubs different types of data', () => {
       symbol: Symbol(42),
       map: new Map([['b', 'c']]),
       set: new Set([1, 2, 3, 4]),
+      buffer: new Buffer('data'),
       date: new Date(0),
     },
   ])
