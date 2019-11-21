@@ -83,7 +83,7 @@ scrub<T> (data: T): T
 
 ## Limitations
 
-- Objects of types `Map` and `Set` are currently not traversed
+- Objects of types `Map`, `Set` and `Buffer` are currently not traversed or modified
 
 ## Vocabulary
 

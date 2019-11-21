@@ -1,6 +1,7 @@
 import {
   charsFromRightScrubber,
   isoDateStringScrubber,
+  preserveOriginalScrubber,
   randomEmailInContentScrubber,
   randomEmailScrubber,
   randomScrubber,
@@ -19,6 +20,15 @@ describe('undefinedScrubber', () => {
     expect(undefinedScrubber(true)).toBeUndefined()
     expect(undefinedScrubber(1)).toBeUndefined()
     expect(undefinedScrubber('foo')).toBeUndefined()
+  })
+})
+
+describe('preserveOriginalScrubber', () => {
+  test('preserves the original value', () => {
+    expect(preserveOriginalScrubber(true)).toBe(true)
+    expect(preserveOriginalScrubber(1)).toBe(1)
+    expect(preserveOriginalScrubber('foo')).toBe('foo')
+    expect(preserveOriginalScrubber(null)).toBe(null)
   })
 })
 

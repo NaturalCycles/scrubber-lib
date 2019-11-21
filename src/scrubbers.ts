@@ -14,6 +14,16 @@ export type UndefinedScrubberFn = ScrubberFn<any, undefined>
 export const undefinedScrubber: UndefinedScrubberFn = () => undefined
 
 /*
+ Preserve original scrubber
+
+ Useful for profiles that inherit from another and want to keep original value
+ (eg: "removing" scrubber from parent)
+ */
+export type PreserveOriginalScrubberFn = ScrubberFn<any, undefined>
+
+export const preserveOriginalScrubber: PreserveOriginalScrubberFn = value => value
+
+/*
  Static scrubber
 
  Replace value with `params.replacement`
@@ -58,7 +68,6 @@ export const isoDateStringScrubber: ISODateStringScrubberFn = (value, params = {
   return value
 }
 
-// TODO: unixTimestampScrubber (unix or ms) that also allows day, month anonymization
 /*
  Unix timestamp (timestamp in seconds) scrubber
  */
@@ -250,6 +259,7 @@ export const saltedHashEmailScrubber: SaltedHashEmailScrubberFn = (value, additi
 
 export const defaultScrubbers: ScrubbersImpl = {
   staticScrubber,
+  preserveOriginalScrubber,
   isoDateStringScrubber,
   unixTimestampScrubber,
   undefinedScrubber,

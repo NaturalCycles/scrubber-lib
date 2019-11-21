@@ -2,6 +2,7 @@ import { Scrubber } from './scrubber'
 import { ScrubberConfig } from './scrubber.model'
 
 import { undefinedScrubber, UndefinedScrubberFn } from './scrubbers'
+import { preserveOriginalScrubber, PreserveOriginalScrubberFn } from './scrubbers'
 import { staticScrubber, StaticScrubberFn, StaticScrubberParams } from './scrubbers'
 
 import {
@@ -29,6 +30,7 @@ import { saltedHashScrubber, SaltedHashScrubberFn, SaltedHashScrubberParams } fr
 export { Scrubber, ScrubberConfig }
 
 export { undefinedScrubber, UndefinedScrubberFn }
+export { preserveOriginalScrubber, PreserveOriginalScrubberFn }
 export { staticScrubber, StaticScrubberParams, StaticScrubberFn }
 export { unixTimestampScrubber, UnixTimestampScrubberFn, UnixTimestampScrubberParams }
 export { isoDateStringScrubber, ISODateStringScrubberFn, ISODateStringScrubberParams }
