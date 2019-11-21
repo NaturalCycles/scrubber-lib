@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.5.1...v2.6.0) (2019-11-21)
+
+
+### Features
+
+* add preserveOrignal scrubber ([#14](https://github.com/NaturalCycles/scrubber-lib/issues/14)) ([cf7662c](https://github.com/NaturalCycles/scrubber-lib/commit/cf7662c3ee56842b44548e6db96446ca9b5c2b68))
+
 ## [2.5.1](https://github.com/NaturalCycles/scrubber-lib/compare/v2.5.0...v2.5.1) (2019-11-07)
 
 
