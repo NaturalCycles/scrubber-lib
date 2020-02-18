@@ -1,6 +1,6 @@
 import { ScrubberConfig } from '../scrubber.model'
 
-export function configStaticScrubbersMock (): ScrubberConfig {
+export function configStaticScrubbersMock(): ScrubberConfig {
   return {
     fields: {
       pw: {
@@ -20,7 +20,7 @@ export function configStaticScrubbersMock (): ScrubberConfig {
   }
 }
 
-export function configMultiFieldMock (): ScrubberConfig {
+export function configMultiFieldMock(): ScrubberConfig {
   return {
     fields: {
       'field1, field2': {
@@ -34,7 +34,7 @@ export function configMultiFieldMock (): ScrubberConfig {
   }
 }
 
-export function configEmailScrubberMock (): ScrubberConfig {
+export function configEmailScrubberMock(): ScrubberConfig {
   return {
     fields: {
       email: {
@@ -48,7 +48,7 @@ export function configEmailScrubberMock (): ScrubberConfig {
   }
 }
 
-export function configInvalidScrubberMock (): ScrubberConfig {
+export function configInvalidScrubberMock(): ScrubberConfig {
   return {
     fields: {
       email: {

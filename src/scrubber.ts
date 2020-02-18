@@ -8,7 +8,7 @@ export class Scrubber {
   private readonly scrubbers: ScrubbersImpl
   private readonly initializationVector: string
 
-  constructor (
+  constructor(
     private cfg: ScrubberConfig,
     additionalScrubbersImpl?: ScrubbersImpl,
     initialzationVector?: string,
@@ -21,11 +21,11 @@ export class Scrubber {
     this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
   }
 
-  scrub<T> (data: T): T {
+  scrub<T>(data: T): T {
     return this.applyScrubbers(data)
   }
 
-  private applyScrubbers<T> (data: T): T {
+  private applyScrubbers<T>(data: T): T {
     const dataCopy = Array.isArray(data) ? [...data] : { ...data }
 
     Object.keys(dataCopy).forEach(key => {
@@ -90,7 +90,7 @@ export class Scrubber {
    * This function returns a new ScrubberConfig where each field is denormalized,
    * allowing fast lookup by keys
    */
-  private expandCfg (cfg: ScrubberConfig): ScrubberConfig {
+  private expandCfg(cfg: ScrubberConfig): ScrubberConfig {
     const newCfg = { ...cfg }
 
     Object.keys(newCfg.fields).forEach(key => {
@@ -109,7 +109,7 @@ export class Scrubber {
     return newCfg
   }
 
-  private checkIfScrubbersExistAndRaise (cfg: ScrubberConfig, scrubbers: ScrubbersImpl): void {
+  private checkIfScrubbersExistAndRaise(cfg: ScrubberConfig, scrubbers: ScrubbersImpl): void {
     if (!cfg.fields) throw Error("Missing the 'fields' key on ScrubberConfig")
 
     const scrubbersOnConfig = Object.keys(cfg.fields).map(field => cfg.fields[field].scrubber)

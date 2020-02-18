@@ -33,13 +33,13 @@ describe('preserveOriginalScrubber', () => {
 })
 
 describe('staticScrubber', () => {
-  test.each([[undefined, 'replacement'], ['', 'replacement']])(
-    'handles undefined values "%s" > "%s"',
-    (input, replacement) => {
-      const result = staticScrubber('', { replacement: 'replacement' })
-      expect(result).toEqual(replacement)
-    },
-  )
+  test.each([
+    [undefined, 'replacement'],
+    ['', 'replacement'],
+  ])('handles undefined values "%s" > "%s"', (input, replacement) => {
+    const result = staticScrubber('', { replacement: 'replacement' })
+    expect(result).toEqual(replacement)
+  })
 
   test('replaces any string with replacement', () => {
     const o = 'bar'
@@ -50,13 +50,13 @@ describe('staticScrubber', () => {
 })
 
 describe('unixTimestampScrubber', () => {
-  test.each([[undefined, undefined], ['', undefined]])(
-    'handles undefined values "%s" > "%s"',
-    (date, expected) => {
-      const result = unixTimestampScrubber(date, { excludeDay: true })
-      expect(result).toEqual(expected)
-    },
-  )
+  test.each([
+    [undefined, undefined],
+    ['', undefined],
+  ])('handles undefined values "%s" > "%s"', (date, expected) => {
+    const result = unixTimestampScrubber(date, { excludeDay: true })
+    expect(result).toEqual(expected)
+  })
 
   test('scrubs only time (string)', () => {
     // Wednesday, July 3, 2019 9:35:21 AM to
@@ -95,13 +95,13 @@ describe('unixTimestampScrubber', () => {
 })
 
 describe('isoDateStringScrubber', () => {
-  test.each([[undefined, undefined], ['', undefined]])(
-    'handles undefined values "%s" > "%s"',
-    (date, expected) => {
-      const result = isoDateStringScrubber(date, { excludeDay: true })
-      expect(result).toEqual(expected)
-    },
-  )
+  test.each([
+    [undefined, undefined],
+    ['', undefined],
+  ])('handles undefined values "%s" > "%s"', (date, expected) => {
+    const result = isoDateStringScrubber(date, { excludeDay: true })
+    expect(result).toEqual(expected)
+  })
 
   test('scrubs only day', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeDay: true })
