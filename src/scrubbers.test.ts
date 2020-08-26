@@ -1,4 +1,5 @@
 import {
+  bcryptStringScrubber,
   charsFromRightScrubber,
   isoDateStringScrubber,
   preserveOriginalScrubber,
@@ -14,6 +15,9 @@ import {
 
 type Nanoid = () => string
 const nanoid = require('nanoid') as Nanoid
+
+const bryptStr1 = '$2a$12$HYNzBb8XYOZZeRwZDiVux.orKNqkSVAoXBDc9Gw7nSxr8rcZupbRK'
+const bryptStr2 = '$2a$10$HYNzBb8XYOZZeRwZDiVux.orKNqkSVAoXBDc9Gw7nSxr8rcZupbRK'
 
 describe('undefinedScrubber', () => {
   test('replaces any value with undefined', () => {
@@ -33,13 +37,13 @@ describe('preserveOriginalScrubber', () => {
 })
 
 describe('staticScrubber', () => {
-  test.each([
-    [undefined, 'replacement'],
-    ['', 'replacement'],
-  ])('handles undefined values "%s" > "%s"', (input, replacement) => {
-    const result = staticScrubber('', { replacement: 'replacement' })
-    expect(result).toEqual(replacement)
-  })
+  test.each([[undefined, 'replacement'], ['', 'replacement']])(
+    'handles undefined values "%s" > "%s"',
+    (input, replacement) => {
+      const result = staticScrubber('', { replacement: 'replacement' })
+      expect(result).toEqual(replacement)
+    },
+  )
 
   test('replaces any string with replacement', () => {
     const o = 'bar'
@@ -50,13 +54,13 @@ describe('staticScrubber', () => {
 })
 
 describe('unixTimestampScrubber', () => {
-  test.each([
-    [undefined, undefined],
-    ['', undefined],
-  ])('handles undefined values "%s" > "%s"', (date, expected) => {
-    const result = unixTimestampScrubber(date, { excludeDay: true })
-    expect(result).toEqual(expected)
-  })
+  test.each([[undefined, undefined], ['', undefined]])(
+    'handles undefined values "%s" > "%s"',
+    (date, expected) => {
+      const result = unixTimestampScrubber(date, { excludeDay: true })
+      expect(result).toEqual(expected)
+    },
+  )
 
   test('scrubs only time (string)', () => {
     // Wednesday, July 3, 2019 9:35:21 AM to
@@ -95,13 +99,13 @@ describe('unixTimestampScrubber', () => {
 })
 
 describe('isoDateStringScrubber', () => {
-  test.each([
-    [undefined, undefined],
-    ['', undefined],
-  ])('handles undefined values "%s" > "%s"', (date, expected) => {
-    const result = isoDateStringScrubber(date, { excludeDay: true })
-    expect(result).toEqual(expected)
-  })
+  test.each([[undefined, undefined], ['', undefined]])(
+    'handles undefined values "%s" > "%s"',
+    (date, expected) => {
+      const result = isoDateStringScrubber(date, { excludeDay: true })
+      expect(result).toEqual(expected)
+    },
+  )
 
   test('scrubs only day', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeDay: true })
@@ -243,5 +247,32 @@ describe('saltedHashEmailScrubber', () => {
     console.log(result)
     expect(result).not.toEqual('secret')
     expect(result).toMatchSnapshot()
+  })
+})
+
+describe('bcryptStringScrubber', () => {
+  test('generates valid bcrypt string while maintaining algo and cost factor', () => {
+    const result = bcryptStringScrubber(bryptStr1)
+    expect(result).not.toEqual(bryptStr1)
+    expect(result!.substr(0, 7)).toEqual('$2a$12$')
+    expect(result!.length).toEqual(bryptStr1.length)
+  })
+
+  test('ensure older cost factor is preserved', () => {
+    const result = bcryptStringScrubber(bryptStr2)
+    expect(result).not.toEqual(bryptStr2)
+    expect(result!.substr(0, 7)).toEqual('$2a$10$')
+  })
+  test('handling undefined and empty', () => {
+    const undefinedResult = bcryptStringScrubber(undefined)
+    expect(undefinedResult).toBeUndefined()
+
+    const emptyResult = bcryptStringScrubber('')
+    expect(emptyResult).toEqual('')
+  })
+  test('handling non-valid bcrypt strings, should return valid bcrypt string', () => {
+    const result = bcryptStringScrubber('stringWithToFew$')
+    expect(result!.substr(0, 7)).toEqual('$2a$12$')
+    expect(result!.length).toEqual(bryptStr1.length)
   })
 })

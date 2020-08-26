@@ -257,6 +257,38 @@ export const saltedHashEmailScrubber: SaltedHashEmailScrubberFn = (value, additi
   return saltedHashScrubber(value, params) + params.domain
 }
 
+/*
+ Bcrypt string scrubber. Scrubs both salt and hash while maintaining algo and cost factor, thus resulting in a valid,
+ but nonsense bcrypt string
+
+ */
+export type BcryptStringScrubberFn = ScrubberFn<string | undefined>
+
+export const bcryptStringScrubber: BcryptStringScrubberFn = value => {
+  if (!value) return value
+
+  // Keep value until 3rd $
+  const cutoff = nthChar(value, '$', 3)
+
+  if (!cutoff) return `$2a$12$${nanoidGenerate(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)}`
+
+  return `${value.substring(0, cutoff)}${nanoidGenerate(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)}`
+}
+
+function nthChar (str: string, character: string, n: number): number | undefined {
+  let count = 0
+  let i = 0
+  while (count < n) {
+    i = str.indexOf(character, i) + 1
+    if (i < 1) {
+      return
+    }
+    count++
+
+    if (count === n) return i
+  }
+}
+
 export const defaultScrubbers: ScrubbersImpl = {
   staticScrubber,
   preserveOriginalScrubber,
@@ -269,4 +301,5 @@ export const defaultScrubbers: ScrubbersImpl = {
   randomEmailInContentScrubber,
   saltedHashScrubber,
   saltedHashEmailScrubber,
+  bcryptStringScrubber,
 }
