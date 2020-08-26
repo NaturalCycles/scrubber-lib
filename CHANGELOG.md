@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.6.0...v2.7.0) (2020-08-26)
+
+
+### Features
+
+* enable scrubbing of bcrypt without losing algo and cost factor ([d4e7193](https://github.com/NaturalCycles/scrubber-lib/commit/d4e7193d1491afa6f046e59d9b796c1542ae5451))
+
 # [2.6.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.5.1...v2.6.0) (2019-11-21)
 
 
