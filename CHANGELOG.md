@@ -1,3 +1,10 @@
+## [2.7.2](https://github.com/NaturalCycles/scrubber-lib/compare/v2.7.1...v2.7.2) (2020-08-27)
+
+
+### Bug Fixes
+
+* yarn upgrade and adapting to nanoid 3.x ([886b9c0](https://github.com/NaturalCycles/scrubber-lib/commit/886b9c01cc34333f8be0f8fb0a50692eb2566788))
+
 ## [2.7.1](https://github.com/NaturalCycles/scrubber-lib/compare/v2.7.0...v2.7.1) (2020-08-27)
 
 
