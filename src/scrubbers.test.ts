@@ -14,8 +14,7 @@ import {
   unixTimestampScrubber,
 } from './scrubbers'
 
-type Nanoid = () => string
-const nanoid = require('nanoid') as Nanoid
+import { nanoid } from 'nanoid'
 
 const bryptStr1 = '$2a$12$HYNzBb8XYOZZeRwZDiVux.orKNqkSVAoXBDc9Gw7nSxr8rcZupbRK'
 const bryptStr2 = '$2a$10$HYNzBb8XYOZZeRwZDiVux.orKNqkSVAoXBDc9Gw7nSxr8rcZupbRK'

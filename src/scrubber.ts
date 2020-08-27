@@ -1,8 +1,7 @@
 import { ScrubberConfig, ScrubbersImpl } from './scrubber.model'
 import { defaultScrubbers } from './scrubbers'
 
-type Nanoid = () => string
-const nanoid = require('nanoid') as Nanoid
+import { nanoid } from 'nanoid'
 
 export class Scrubber {
   private readonly scrubbers: ScrubbersImpl
