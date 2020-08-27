@@ -1,8 +1,7 @@
 import * as crypto from 'crypto'
 import { ScrubberFn, ScrubbersImpl } from './scrubber.model'
-type NanoidGenerate = (alphabet: string, length?: number) => string
 
-const nanoidGenerate = require('nanoid/generate') as NanoidGenerate
+import { customAlphabet } from 'nanoid'
 
 /*
  Undefined scrubber
@@ -150,7 +149,7 @@ export type RandomScrubberFn = ScrubberFn<string, RandomScrubberParams>
 
 export const randomScrubber: RandomScrubberFn = (value, additionalParams) => {
   const params = { alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE, length: 16, ...additionalParams }
-  return nanoidGenerate(params.alphabet, params['length'])
+  return customAlphabet(params.alphabet, params['length'])()
 }
 
 /*
@@ -174,7 +173,7 @@ export const randomEmailScrubber: RandomEmailScrubberFn = (value, additionalPara
     domain: '@example.com',
     ...additionalParams,
   }
-  return nanoidGenerate(params.alphabet, params['length']) + params.domain
+  return customAlphabet(params.alphabet, params['length'])() + params.domain
 }
 
 /*
@@ -225,11 +224,7 @@ export const saltedHashScrubber: SaltedHashScrubberFn = (value, params) => {
     throw new Error('Initialization vector is missing')
   }
 
-  return crypto
-    .createHash('sha256')
-    .update(value)
-    .update(params.initializationVector)
-    .digest('hex')
+  return crypto.createHash('sha256').update(value).update(params.initializationVector).digest('hex')
 }
 
 /*
@@ -279,7 +274,7 @@ export const bcryptStringScrubber: BcryptStringScrubberFn = (value, params) => {
 
   // Keep value until 3rd $
   const cutoff = nthChar(value, '$', 3)
-  if (!cutoff) return `$2a$12$${nanoidGenerate(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)}`
+  if (!cutoff) return `$2a$12$${customAlphabet(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)()}`
 
   const prefix = value.substring(0, cutoff)
 
@@ -290,7 +285,7 @@ export const bcryptStringScrubber: BcryptStringScrubberFn = (value, params) => {
     }
   }
 
-  return `${prefix}${nanoidGenerate(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)}`
+  return `${prefix}${customAlphabet(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)()}`
 }
 
 function nthChar(str: string, character: string, n: number): number | undefined {

@@ -1,4 +1,5 @@
 import { deepFreeze } from '@naturalcycles/test-lib'
+import { nanoid } from 'nanoid'
 import { Scrubber } from './scrubber'
 import { ScrubberConfig, ScrubberFn, ScrubbersImpl } from './scrubber.model'
 import { saltedHashEmailScrubber, saltedHashScrubber } from './scrubbers'
@@ -8,9 +9,6 @@ import {
   configMultiFieldMock,
   configStaticScrubbersMock,
 } from './test/scrubber.mock'
-
-type Nanoid = () => string
-const nanoid = require('nanoid') as Nanoid
 
 // Convenient method for initializing object and scrubbing
 const scrub = <T>(
