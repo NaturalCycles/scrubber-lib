@@ -1,3 +1,10 @@
+## [2.7.1](https://github.com/NaturalCycles/scrubber-lib/compare/v2.7.0...v2.7.1) (2020-08-27)
+
+
+### Bug Fixes
+
+* support algo-specific replacements ([60596ba](https://github.com/NaturalCycles/scrubber-lib/commit/60596ba9fc489e465c18a41dced750fbf81fa0fe))
+
 # [2.7.0](https://github.com/NaturalCycles/scrubber-lib/compare/v2.6.0...v2.7.0) (2020-08-26)
 
 
