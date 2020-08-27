@@ -1,5 +1,6 @@
 import {
   bcryptStringScrubber,
+  BcryptStringScrubberParams,
   charsFromRightScrubber,
   isoDateStringScrubber,
   preserveOriginalScrubber,
@@ -37,13 +38,13 @@ describe('preserveOriginalScrubber', () => {
 })
 
 describe('staticScrubber', () => {
-  test.each([[undefined, 'replacement'], ['', 'replacement']])(
-    'handles undefined values "%s" > "%s"',
-    (input, replacement) => {
-      const result = staticScrubber('', { replacement: 'replacement' })
-      expect(result).toEqual(replacement)
-    },
-  )
+  test.each([
+    [undefined, 'replacement'],
+    ['', 'replacement'],
+  ])('handles undefined values "%s" > "%s"', (input, replacement) => {
+    const result = staticScrubber('', { replacement: 'replacement' })
+    expect(result).toEqual(replacement)
+  })
 
   test('replaces any string with replacement', () => {
     const o = 'bar'
@@ -54,13 +55,13 @@ describe('staticScrubber', () => {
 })
 
 describe('unixTimestampScrubber', () => {
-  test.each([[undefined, undefined], ['', undefined]])(
-    'handles undefined values "%s" > "%s"',
-    (date, expected) => {
-      const result = unixTimestampScrubber(date, { excludeDay: true })
-      expect(result).toEqual(expected)
-    },
-  )
+  test.each([
+    [undefined, undefined],
+    ['', undefined],
+  ])('handles undefined values "%s" > "%s"', (date, expected) => {
+    const result = unixTimestampScrubber(date, { excludeDay: true })
+    expect(result).toEqual(expected)
+  })
 
   test('scrubs only time (string)', () => {
     // Wednesday, July 3, 2019 9:35:21 AM to
@@ -99,13 +100,13 @@ describe('unixTimestampScrubber', () => {
 })
 
 describe('isoDateStringScrubber', () => {
-  test.each([[undefined, undefined], ['', undefined]])(
-    'handles undefined values "%s" > "%s"',
-    (date, expected) => {
-      const result = isoDateStringScrubber(date, { excludeDay: true })
-      expect(result).toEqual(expected)
-    },
-  )
+  test.each([
+    [undefined, undefined],
+    ['', undefined],
+  ])('handles undefined values "%s" > "%s"', (date, expected) => {
+    const result = isoDateStringScrubber(date, { excludeDay: true })
+    expect(result).toEqual(expected)
+  })
 
   test('scrubs only day', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeDay: true })
@@ -274,5 +275,15 @@ describe('bcryptStringScrubber', () => {
     const result = bcryptStringScrubber('stringWithToFew$')
     expect(result!.substr(0, 7)).toEqual('$2a$12$')
     expect(result!.length).toEqual(bryptStr1.length)
+  })
+  test('handling replacements map', () => {
+    const params: BcryptStringScrubberParams = {
+      replacements: '$2a$10$:$2a$10$456,$2a$12$:$2a$12$123',
+    }
+    const result = bcryptStringScrubber(bryptStr1, params)
+    expect(result).toEqual('$2a$12$123')
+
+    const result2 = bcryptStringScrubber(bryptStr2, params)
+    expect(result2).toEqual('$2a$10$456')
   })
 })
