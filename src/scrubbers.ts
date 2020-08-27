@@ -262,20 +262,38 @@ export const saltedHashEmailScrubber: SaltedHashEmailScrubberFn = (value, additi
  but nonsense bcrypt string
 
  */
-export type BcryptStringScrubberFn = ScrubberFn<string | undefined>
+export type BcryptStringScrubberFn = ScrubberFn<string | undefined, BcryptStringScrubberParams>
 
-export const bcryptStringScrubber: BcryptStringScrubberFn = value => {
+/*
+ replacements string is a comma seperated list of key-value pairs (seperated by :) that maps bcrypt string prefix
+ (algo + cost factor) to a resulting string replacement.
+
+ e.g. replacements: '$2a$10$:$2a$10$456,$2a$12$:$2a$12$123'
+ */
+export interface BcryptStringScrubberParams {
+  replacements: string
+}
+
+export const bcryptStringScrubber: BcryptStringScrubberFn = (value, params) => {
   if (!value) return value
 
   // Keep value until 3rd $
   const cutoff = nthChar(value, '$', 3)
-
   if (!cutoff) return `$2a$12$${nanoidGenerate(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)}`
 
-  return `${value.substring(0, cutoff)}${nanoidGenerate(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)}`
+  const prefix = value.substring(0, cutoff)
+
+  if (params?.replacements) {
+    for (const kvPair of params.replacements.split(',')) {
+      const [k, v] = kvPair.split(':')
+      if (prefix === k) return v
+    }
+  }
+
+  return `${prefix}${nanoidGenerate(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)}`
 }
 
-function nthChar (str: string, character: string, n: number): number | undefined {
+function nthChar(str: string, character: string, n: number): number | undefined {
   let count = 0
   let i = 0
   while (count < n) {
