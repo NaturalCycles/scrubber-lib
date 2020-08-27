@@ -149,8 +149,7 @@ export type RandomScrubberFn = ScrubberFn<string, RandomScrubberParams>
 
 export const randomScrubber: RandomScrubberFn = (value, additionalParams) => {
   const params = { alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE, length: 16, ...additionalParams }
-  const nanoid = customAlphabet(params.alphabet, params['length'])
-  return nanoid()
+  return customAlphabet(params.alphabet, params['length'])()
 }
 
 /*
