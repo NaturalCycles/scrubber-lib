@@ -51,6 +51,13 @@ describe('staticScrubber', () => {
     expect(staticScrubber('', { replacement: o })).toEqual(o)
     expect(staticScrubber('foo', { replacement: o })).toEqual(o)
   })
+
+  test('replace number', () => {
+    const secretNum = 666
+    const r = 123
+
+    expect(staticScrubber(secretNum, { replacement: r })).toEqual(r)
+  })
 })
 
 describe('unixTimestampScrubber', () => {

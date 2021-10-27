@@ -28,7 +28,7 @@ export const preserveOriginalScrubber: PreserveOriginalScrubberFn = value => val
  Replace value with `params.replacement`
  */
 export interface StaticScrubberParams {
-  replacement: string
+  replacement: string | number
 }
 export type StaticScrubberFn = ScrubberFn<any, StaticScrubberParams>
 
