@@ -1,14 +1,17 @@
 {
   "name": "@naturalcycles/scrubber-lib",
-  "scripts": {},
+  "scripts": {
+    "prepare": "husky install"
+  },
   "dependencies": {
+    "@naturalcycles/js-lib": "^14.55.0",
     "nanoid": "^3.1.12"
   },
   "devDependencies": {
-    "@naturalcycles/dev-lib": "^10.0.0",
+    "@naturalcycles/dev-lib": "^12.11.4",
     "@naturalcycles/test-lib": "^1.0.3",
-    "@types/node": "^13.7.1",
-    "jest": "^25.1.0"
+    "@types/node": "^16.11.6",
+    "jest": "^27.3.1"
   },
   "files": [
     "dist",
@@ -28,7 +31,7 @@
     "url": "https://github.com/NaturalCycles/scrubber-lib"
   },
   "engines": {
-    "node": ">=10.13"
+    "node": ">=14.15.0"
   },
   "version": "2.7.2",
   "description": "Scrub data in JavaScript plain objects by using rules defined in a configuration object",

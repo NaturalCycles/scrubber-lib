@@ -1,7 +1,6 @@
+import { nanoid } from 'nanoid'
 import { ScrubberConfig, ScrubbersImpl } from './scrubber.model'
 import { defaultScrubbers } from './scrubbers'
-
-import { nanoid } from 'nanoid'
 
 export class Scrubber {
   private readonly scrubbers: ScrubbersImpl
@@ -35,7 +34,7 @@ export class Scrubber {
         if (
           dataCopy[key] instanceof Map ||
           dataCopy[key] instanceof Set ||
-          dataCopy[key] instanceof Buffer
+          Buffer.isBuffer(dataCopy[key])
         ) {
           return
         }
@@ -48,7 +47,7 @@ export class Scrubber {
         return
       }
 
-      const scrubber = this.scrubbers[scrubberCurrentField.scrubber]
+      const scrubber = this.scrubbers[scrubberCurrentField.scrubber]!
       const params = {
         initializationVector: this.initializationVector,
         ...scrubberCurrentField.params,
@@ -95,7 +94,7 @@ export class Scrubber {
     Object.keys(newCfg.fields).forEach(key => {
       if (key.includes(',')) {
         const fieldNames = key.split(',')
-        const fieldCfg = newCfg.fields[key]
+        const fieldCfg = newCfg.fields[key]!
 
         delete newCfg.fields[key]
 
@@ -109,14 +108,14 @@ export class Scrubber {
   }
 
   private checkIfScrubbersExistAndRaise(cfg: ScrubberConfig, scrubbers: ScrubbersImpl): void {
-    if (!cfg.fields) throw Error("Missing the 'fields' key on ScrubberConfig")
+    if (!cfg.fields) throw new Error("Missing the 'fields' key on ScrubberConfig")
 
-    const scrubbersOnConfig = Object.keys(cfg.fields).map(field => cfg.fields[field].scrubber)
+    const scrubbersOnConfig = Object.keys(cfg.fields).map(field => cfg.fields[field]!.scrubber)
     const scrubbersAvailable = Object.keys(scrubbers)
 
     scrubbersOnConfig.forEach(scrubber => {
       if (!scrubbersAvailable.includes(scrubber)) {
-        throw Error(`${scrubber} not found`)
+        throw new Error(`${scrubber} not found`)
       }
     })
   }

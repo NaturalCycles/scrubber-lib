@@ -3,7 +3,6 @@
 > Scrub data in JavaScript plain objects by using rules defined in a configuration object
 
 [![npm](https://img.shields.io/npm/v/@naturalcycles/scrubber-lib/latest.svg)](https://www.npmjs.com/package/@naturalcycles/scrubber-lib)
-[![](https://circleci.com/gh/NaturalCycles/scrubber-lib.svg?style=shield&circle-token=123)](https://circleci.com/gh/NaturalCycles/scrubber-lib)
 [![Maintainability](https://api.codeclimate.com/v1/badges/e8cd5b1b7cff8e1296fe/maintainability)](https://codeclimate.com/repos/e8cd5b1b7cff8e1296fe/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/e8cd5b1b7cff8e1296fe/test_coverage)](https://codeclimate.com/repos/e8cd5b1b7cff8e1296fe/test_coverage)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
@@ -18,7 +17,7 @@ yarn add -D @naturalcycles/scrubber-lib
 
 Define a scrubber configuration object:
 
-```javascript
+```ts
 import { ScrubberConfig, Scrubber } from '@naturalcycles/scrubber-lib'
 
 const cfg: ScrubberConfig = {
@@ -40,7 +39,7 @@ const cfg: ScrubberConfig = {
 
 Scrub a single object:
 
-```javascript
+```ts
 const object = { name: 'Real Name', password: 'secret' }
 
 const scrubber = new Scrubber(cfg)
@@ -51,7 +50,7 @@ const scrubbedObject = scrubber.scrub(object)
 
 Scrub an array of objects:
 
-```javascript
+```ts
 const objects = [object1, object2, object3]
 
 const scrubbedObjects = scrubber.scrub(objects)
@@ -59,7 +58,7 @@ const scrubbedObjects = scrubber.scrub(objects)
 
 ## Public API
 
-```javascript
+```ts
 constructor (private cfg: ScrubberConfig, additionalScrubbersImpl?: ScrubbersImpl)
 scrub<T> (data: T): T
 ```
@@ -102,10 +101,3 @@ Allows, for example, removal of sensitive data for:
 - Error reporting to third-party services
 - Data exports (such as staging or other data exports)
 - Anonymizing production users (GDPR "_right to be forgotten_")
-
-# Packaging
-
-- `engines.node >= 10.13`: Latest Node.js LTS
-- `main: dist/index.js`: commonjs, es2018
-- `types: dist/index.d.ts`: typescript types
-- `/src` folder with source `*.ts` files included

@@ -67,9 +67,9 @@ test('applies to nested arrays', () => {
   deepFreeze(users)
 
   const result = scrub(users, configStaticScrubbersMock())
-  expect(result[0]['users'][0]).toEqual({ pw: 'notsecret', safe: 'shouldStay' })
-  expect(result[0]['users'][1]).toEqual({ name: 'Jane Doe', safe2: 'isSafe' })
-  expect(Array.isArray(result[0]['users'])).toBeTruthy() // makes sure we don't convert array to objects
+  expect(result[0]!['users'][0]).toEqual({ pw: 'notsecret', safe: 'shouldStay' })
+  expect(result[0]!['users'][1]).toEqual({ name: 'Jane Doe', safe2: 'isSafe' })
+  expect(Array.isArray(result[0]!['users'])).toBeTruthy() // makes sure we don't convert array to objects
 })
 
 test('keeps not modified fields', () => {
@@ -154,7 +154,7 @@ describe('falsy values handling', () => {
 
 describe('error handling', () => {
   const faultyScrubber: ScrubberFn = () => {
-    throw Error('ops')
+    throw new Error('ops')
   }
 
   const cfg: ScrubberConfig = {
@@ -193,13 +193,13 @@ test('scrubs different types of data', () => {
   const result = scrub([
     {
       null: null,
-      undefined,
+      undefined, // eslint-disable-line id-blacklist
       array: [1, 2, { pw: 'secret' }],
       function: () => 1,
       symbol: Symbol(42),
       map: new Map([['b', 'c']]),
       set: new Set([1, 2, 3, 4]),
-      buffer: new Buffer('data'),
+      buffer: Buffer.from('data'),
       date: new Date(0),
     },
   ])

@@ -1,7 +1,6 @@
 import * as crypto from 'crypto'
-import { ScrubberFn, ScrubbersImpl } from './scrubber.model'
-
 import { customAlphabet } from 'nanoid'
+import { ScrubberFn, ScrubbersImpl } from './scrubber.model'
 
 /*
  Undefined scrubber
@@ -194,6 +193,7 @@ export const randomEmailInContentScrubber: RandomEmailInContentScrubberFn = (
   additionalParams,
 ) => {
   // Email regex, allows letters
+  // eslint-disable-next-line no-useless-escape
   const emailRegex = /([a-zA-Z1-9\._-]*@[a-zA-Z1-9\._-]*\.[a-zA-Z_-]{2,3})/
   const matches = emailRegex.exec(value)
   if (!matches) {

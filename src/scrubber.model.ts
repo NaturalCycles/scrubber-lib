@@ -1,11 +1,6 @@
-/**
- * Map from String to String (or <T>).
- */
-export interface StringMap<T = string> {
-  [k: string]: T
-}
+import { AnyObject, StringMap } from '@naturalcycles/js-lib'
 
-export type ScrubberFn<T = any, PARAMS = {}> = (value: T, params?: PARAMS) => T
+export type ScrubberFn<T = any, PARAMS = AnyObject> = (value: T, params?: PARAMS) => T
 
 export interface ScrubberConfig {
   fields: StringMap<ScrubberFieldConfig>
