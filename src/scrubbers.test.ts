@@ -164,6 +164,15 @@ describe('charsFromRightScrubber', () => {
   })
 })
 
+test('charsFromRightScrubber - Full replacement', () => {
+  const result = charsFromRightScrubber('blabla_123', {
+    count: 3,
+    replacement: '456',
+    replaceFull: true,
+  })
+  expect(result).toEqual('blabla_456')
+})
+
 describe('randomScrubber', () => {
   test('generates with default arguments', () => {
     const result = randomScrubber('secret')

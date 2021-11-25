@@ -115,19 +115,27 @@ export const unixTimestampScrubber: UnixTimestampScrubberFn = (value, params = {
 export interface CharsFromRightScrubberParams {
   count: number
   replacement: string
+  /**
+   * Should replacement be for "full" replacement? default is false, each replaced char will be replaced with replacement.
+   */
+  replaceFull?: boolean
 }
 export type CharsFromRightScrubberFn = ScrubberFn<string | undefined, CharsFromRightScrubberParams>
 
 export const charsFromRightScrubber: CharsFromRightScrubberFn = (
   value,
-  params = { count: 99, replacement: 'X' },
+  params = { count: 99, replacement: 'X', replaceFull: false },
 ) => {
   if (!value) return
 
-  const { count, replacement } = params
+  const { count, replacement, replaceFull } = params
 
-  const lengthToReplace = Math.min(count, value.length)
-  return value.substr(0, value.length - count) + replacement.repeat(lengthToReplace)
+  if (replaceFull) {
+    return value.substr(0, value.length - count) + replacement
+  } else {
+    const lengthToReplace = Math.min(count, value.length)
+    return value.substr(0, value.length - count) + replacement.repeat(lengthToReplace)
+  }
 }
 
 /*

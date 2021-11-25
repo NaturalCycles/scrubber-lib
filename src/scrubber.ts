@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import { _deepEquals, StringMap } from '@naturalcycles/js-lib'
 import { ScrubberConfig, ScrubbersImpl } from './scrubber.model'
 import { defaultScrubbers } from './scrubbers'
 
@@ -16,6 +17,7 @@ export class Scrubber {
     this.initializationVector = initialzationVector ? initialzationVector : nanoid()
     this.scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
     this.cfg = { ...defaultCfg, ...this.expandCfg(cfg) }
+    this.cfg.splitFields = this.splitFields(cfg)
     this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
   }
 
@@ -23,11 +25,24 @@ export class Scrubber {
     return this.applyScrubbers(data)
   }
 
-  private applyScrubbers<T>(data: T): T {
+  private applyScrubbers<T>(data: T, parents: string[] = []): T {
     const dataCopy = Array.isArray(data) ? [...data] : { ...data }
 
     Object.keys(dataCopy).forEach(key => {
-      const scrubberCurrentField = this.cfg.fields[key]
+      let scrubberCurrentField = this.cfg.fields[key]
+
+      if (
+        !scrubberCurrentField &&
+        this.cfg.splitFields?.[key] &&
+        parents &&
+        this.arrayContainsInOrder(parents, this.cfg.splitFields[key])
+      ) {
+        const splitFieldParentCfg: string[] = (
+          this.cfg.splitFields[key] ? this.cfg.splitFields[key] : []
+        ) as string[]
+        const recomposedKey = [...splitFieldParentCfg, key].join('.')
+        scrubberCurrentField = this.cfg.fields[recomposedKey]
+      }
 
       if (!scrubberCurrentField) {
         // Ignore unsupported object types
@@ -41,7 +56,8 @@ export class Scrubber {
 
         // Deep traverse
         if (typeof dataCopy[key] === 'object' && dataCopy[key]) {
-          dataCopy[key] = this.applyScrubbers(dataCopy[key])
+          const parentsNext = [...parents, key]
+          dataCopy[key] = this.applyScrubbers(dataCopy[key], parentsNext)
         }
 
         return
@@ -118,5 +134,35 @@ export class Scrubber {
         throw new Error(`${scrubber} not found`)
       }
     })
+  }
+
+  private splitFields(cfg: ScrubberConfig): StringMap<string[]> {
+    const output: StringMap<string[]> = {}
+    for (const field of Object.keys(cfg.fields)) {
+      const splitField = field.split('.')
+
+      if (splitField.length > 1) {
+        const key = splitField.pop() as string
+        output[key] = splitField
+      }
+    }
+    return output
+  }
+
+  /**
+   * returns true if all entries in b are equal to the end of entries of a. a may be longer than b.
+   *
+   * @param a
+   * @param b
+   * @private
+   */
+  private arrayContainsInOrder(a: any[] | undefined, b: any[] | undefined) {
+    if (!a || !b) return false
+    if (a === b) return true
+
+    // a may be longer than b, slice a to the size of b, take chunk from the end
+    const aSliced = a.slice(a.length - b.length, a.length)
+
+    return _deepEquals(aSliced, b)
   }
 }

@@ -48,6 +48,26 @@ export function configEmailScrubberMock(): ScrubberConfig {
   }
 }
 
+export function configParentScrubbersMock(): ScrubberConfig {
+  return {
+    fields: {
+      'multi.interim.secret': {
+        scrubber: 'staticScrubber',
+        params: {
+          replacement: 'replaced',
+        },
+      },
+      'encryption.key': {
+        scrubber: 'staticScrubber',
+        params: {
+          replacement: 'replaced',
+        },
+      },
+    },
+    preserveFalsy: false,
+  }
+}
+
 export function configInvalidScrubberMock(): ScrubberConfig {
   return {
     fields: {
