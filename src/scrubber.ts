@@ -36,9 +36,12 @@ export class Scrubber {
         this.cfg.splitFields &&
         this.cfg.splitFields[key] &&
         parents &&
-        this.arraysEqual(this.cfg.splitFields[key], parents)
+        this.arrayContainsInOrder(parents, this.cfg.splitFields[key])
       ) {
-        const recomposedKey = [...parents, key].join('.')
+        const splitFieldParentCfg: string[] = (
+          this.cfg.splitFields[key] ? this.cfg.splitFields[key] : []
+        ) as string[]
+        const recomposedKey = [...splitFieldParentCfg, key].join('.')
         scrubberCurrentField = this.cfg.fields[recomposedKey]
       }
 
@@ -147,12 +150,21 @@ export class Scrubber {
     return output
   }
 
-  private arraysEqual(a: any[] | undefined, b: any[] | undefined) {
+  /**
+   * returns true if all entries in b are equal to the end of entries of a. a may be longer than b.
+   *
+   * @param a
+   * @param b
+   * @private
+   */
+  private arrayContainsInOrder(a: any[] | undefined, b: any[] | undefined) {
+    if (!a || !b) return false
     if (a === b) return true
-    if (a == null || b == null) return false
-    if (a.length !== b.length) return false
 
-    for (const [i, element] of a.entries()) {
+    // a may be longer than b, slice a to the size of b, take chunk from the end
+    const aSliced = a.slice(a.length - b.length, a.length)
+
+    for (const [i, element] of aSliced.entries()) {
       if (element !== b[i]) return false
     }
     return true
