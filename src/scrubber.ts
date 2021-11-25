@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid'
-import { StringMap } from '@naturalcycles/js-lib'
+import { _deepEquals, StringMap } from '@naturalcycles/js-lib'
 import { ScrubberConfig, ScrubbersImpl } from './scrubber.model'
 import { defaultScrubbers } from './scrubbers'
 
@@ -25,7 +25,7 @@ export class Scrubber {
     return this.applyScrubbers(data)
   }
 
-  private applyScrubbers<T>(data: T, parents?: string[]): T {
+  private applyScrubbers<T>(data: T, parents: string[] = []): T {
     const dataCopy = Array.isArray(data) ? [...data] : { ...data }
 
     Object.keys(dataCopy).forEach(key => {
@@ -33,8 +33,7 @@ export class Scrubber {
 
       if (
         !scrubberCurrentField &&
-        this.cfg.splitFields &&
-        this.cfg.splitFields[key] &&
+        this.cfg.splitFields?.[key] &&
         parents &&
         this.arrayContainsInOrder(parents, this.cfg.splitFields[key])
       ) {
@@ -57,7 +56,7 @@ export class Scrubber {
 
         // Deep traverse
         if (typeof dataCopy[key] === 'object' && dataCopy[key]) {
-          const parentsNext = parents ? [...parents, key] : [key]
+          const parentsNext = [...parents, key]
           dataCopy[key] = this.applyScrubbers(dataCopy[key], parentsNext)
         }
 
@@ -164,9 +163,6 @@ export class Scrubber {
     // a may be longer than b, slice a to the size of b, take chunk from the end
     const aSliced = a.slice(a.length - b.length, a.length)
 
-    for (const [i, element] of aSliced.entries()) {
-      if (element !== b[i]) return false
-    }
-    return true
+    return _deepEquals(aSliced, b)
   }
 }
