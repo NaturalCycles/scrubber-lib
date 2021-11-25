@@ -7,6 +7,7 @@ import {
   configEmailScrubberMock,
   configInvalidScrubberMock,
   configMultiFieldMock,
+  configParentScrubbersMock,
   configStaticScrubbersMock,
 } from './test/scrubber.mock'
 
@@ -380,4 +381,22 @@ test('example (readme)', () => {
   const newObject = scrubber.scrub(object)
 
   console.log(newObject)
+})
+
+test('Support scrubbing based on parent', () => {
+  const data = { api: { key: 'notsosecret' }, encryption: { key: '123456' } }
+  const scrubber = new Scrubber(configParentScrubbersMock())
+  const result = scrubber.scrub(data)
+
+  expect(result).toEqual({ api: { key: 'notsosecret' }, encryption: { key: 'replaced' } })
+})
+
+test('Support scrubbing based on multi-level parent', () => {
+  const data = { multi: { api: { secret: 'notsosecret' }, interim: { secret: '123456' } } }
+  const scrubber = new Scrubber(configParentScrubbersMock())
+  const result = scrubber.scrub(data)
+
+  expect(result).toEqual({
+    multi: { api: { secret: 'notsosecret' }, interim: { secret: 'replaced' } },
+  })
 })

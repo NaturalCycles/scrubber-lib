@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid'
+import { StringMap } from '@naturalcycles/js-lib'
 import { ScrubberConfig, ScrubbersImpl } from './scrubber.model'
 import { defaultScrubbers } from './scrubbers'
 
@@ -16,6 +17,7 @@ export class Scrubber {
     this.initializationVector = initialzationVector ? initialzationVector : nanoid()
     this.scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
     this.cfg = { ...defaultCfg, ...this.expandCfg(cfg) }
+    this.cfg.splitFields = this.splitFields(cfg)
     this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
   }
 
@@ -23,11 +25,22 @@ export class Scrubber {
     return this.applyScrubbers(data)
   }
 
-  private applyScrubbers<T>(data: T): T {
+  private applyScrubbers<T>(data: T, parents?: string[]): T {
     const dataCopy = Array.isArray(data) ? [...data] : { ...data }
 
     Object.keys(dataCopy).forEach(key => {
-      const scrubberCurrentField = this.cfg.fields[key]
+      let scrubberCurrentField = this.cfg.fields[key]
+
+      if (
+        !scrubberCurrentField &&
+        this.cfg.splitFields &&
+        this.cfg.splitFields[key] &&
+        parents &&
+        this.arraysEqual(this.cfg.splitFields[key], parents)
+      ) {
+        const recomposedKey = [...parents, key].join('.')
+        scrubberCurrentField = this.cfg.fields[recomposedKey]
+      }
 
       if (!scrubberCurrentField) {
         // Ignore unsupported object types
@@ -41,7 +54,8 @@ export class Scrubber {
 
         // Deep traverse
         if (typeof dataCopy[key] === 'object' && dataCopy[key]) {
-          dataCopy[key] = this.applyScrubbers(dataCopy[key])
+          const parentsNext = parents ? [...parents, key] : [key]
+          dataCopy[key] = this.applyScrubbers(dataCopy[key], parentsNext)
         }
 
         return
@@ -118,5 +132,29 @@ export class Scrubber {
         throw new Error(`${scrubber} not found`)
       }
     })
+  }
+
+  private splitFields(cfg: ScrubberConfig): StringMap<string[]> {
+    const output: StringMap<string[]> = {}
+    for (const field of Object.keys(cfg.fields)) {
+      const splitField = field.split('.')
+
+      if (splitField.length > 1) {
+        const key = splitField.pop() as string
+        output[key] = splitField
+      }
+    }
+    return output
+  }
+
+  private arraysEqual(a: any[] | undefined, b: any[] | undefined) {
+    if (a === b) return true
+    if (a == null || b == null) return false
+    if (a.length !== b.length) return false
+
+    for (const [i, element] of a.entries()) {
+      if (element !== b[i]) return false
+    }
+    return true
   }
 }
