@@ -151,6 +151,7 @@ export class Scrubber {
 
   /**
    * returns true if all entries in b are equal to the end of entries of a. a may be longer than b.
+   * Supports objects inside of arrays by removing any integer entries from a before comparing
    *
    * @param a
    * @param b
@@ -160,8 +161,13 @@ export class Scrubber {
     if (!a || !b) return false
     if (a === b) return true
 
+    // Remove any entries that are integers as we assume they are array indices that should be ignored for parent matching
+    let aSliced = a.filter(e => !e.match(/^[0-9]*$/g))
+
+    if (a.length < b.length) return false
+
     // a may be longer than b, slice a to the size of b, take chunk from the end
-    const aSliced = a.slice(a.length - b.length, a.length)
+    aSliced = aSliced.slice(aSliced.length - b.length, aSliced.length)
 
     return _deepEquals(aSliced, b)
   }
