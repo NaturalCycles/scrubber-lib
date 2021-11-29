@@ -160,11 +160,14 @@ export class Scrubber {
   private arrayContainsInOrder(a: any[] | undefined, b: any[] | undefined) {
     if (!a || !b) return false
     if (a === b) return true
+    if (a.length < b.length) return false
+
+    const intRegex = /^[0-9]*$/g
 
     // Remove any entries that are integers as we assume they are array indices that should be ignored for parent matching
-    let aSliced = a.filter(e => !e.match(/^[0-9]*$/g))
+    let aSliced = a.filter(e => !intRegex.test(e))
 
-    if (a.length < b.length) return false
+    if (aSliced.length < b.length) return false
 
     // a may be longer than b, slice a to the size of b, take chunk from the end
     aSliced = aSliced.slice(aSliced.length - b.length, aSliced.length)
