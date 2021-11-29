@@ -402,3 +402,13 @@ test('Support scrubbing based on multi-level parent', () => {
     multi: { api: { secret: 'notsosecret' }, interim: { secret: 'replaced' } },
   })
 })
+
+test('Parent reference inside of array', () => {
+  const data = { multi: { interim: [{ secret: '123456' }] } }
+  const scrubber = new Scrubber(configParentScrubbersMock())
+  const result = scrubber.scrub(data)
+
+  expect(result).toEqual({
+    multi: { interim: [{ secret: 'replaced' }] },
+  })
+})
