@@ -6,11 +6,21 @@ import { defaultScrubbers } from './scrubbers'
 export class Scrubber {
   private readonly scrubbers: ScrubbersImpl
   private readonly initializationVector: string
+  private readonly rootType?: string
 
+  /**
+   * Create new scrubber instance
+   *
+   * @param cfg
+   * @param additionalScrubbersImpl optional additional scrubbers
+   * @param initialzationVector optional initialization vector used by some scrubbers.
+   * @param rootType optional root type. Assumes all objects passed to this scubber is of named type for the sake of parent matching.
+   */
   constructor(
     private cfg: ScrubberConfig,
     additionalScrubbersImpl?: ScrubbersImpl,
     initialzationVector?: string,
+    rootType?: string,
   ) {
     const defaultCfg: Partial<ScrubberConfig> = { throwOnError: false, preserveFalsy: true }
 
@@ -19,10 +29,11 @@ export class Scrubber {
     this.cfg = { ...defaultCfg, ...this.expandCfg(cfg) }
     this.cfg.splitFields = this.splitFields(cfg)
     this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
+    this.rootType = rootType
   }
 
   scrub<T>(data: T): T {
-    return this.applyScrubbers(data)
+    return this.applyScrubbers(data, this.rootType ? [this.rootType] : undefined)
   }
 
   private applyScrubbers<T>(data: T, parents: string[] = []): T {
