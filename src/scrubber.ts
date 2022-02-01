@@ -32,6 +32,15 @@ export class Scrubber {
     this.rootType = rootType
   }
 
+  static getScrubberForType(
+    rootType: string,
+    cfg: ScrubberConfig,
+    additionalScrubbersImpl?: ScrubbersImpl,
+    initialzationVector?: string,
+  ): Scrubber {
+    return new Scrubber(cfg, additionalScrubbersImpl, initialzationVector, rootType)
+  }
+
   scrub<T>(data: T): T {
     return this.applyScrubbers(data, this.rootType ? [this.rootType] : undefined)
   }

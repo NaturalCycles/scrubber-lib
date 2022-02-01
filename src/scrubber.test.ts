@@ -415,7 +415,7 @@ test('Parent reference inside of array', () => {
 
 test('Parent via passed root type', () => {
   const data = { key: '123456' }
-  const scrubber = new Scrubber(configParentScrubbersMock(), undefined, undefined, 'encryption')
+  const scrubber = Scrubber.getScrubberForType('encryption', configParentScrubbersMock())
   const result = scrubber.scrub(data)
 
   expect(result).toEqual({ key: 'replaced' })
