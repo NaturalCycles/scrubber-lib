@@ -1,4 +1,4 @@
-import * as crypto from 'crypto'
+import * as crypto from 'node:crypto'
 import { customAlphabet } from 'nanoid'
 import { ScrubberFn, ScrubbersImpl } from './scrubber.model'
 
@@ -132,10 +132,9 @@ export const charsFromRightScrubber: CharsFromRightScrubberFn = (
 
   if (replaceFull) {
     return value.substr(0, value.length - count) + replacement
-  } else {
-    const lengthToReplace = Math.min(count, value.length)
-    return value.substr(0, value.length - count) + replacement.repeat(lengthToReplace)
   }
+  const lengthToReplace = Math.min(count, value.length)
+  return value.substr(0, value.length - count) + replacement.repeat(lengthToReplace)
 }
 
 /*
@@ -207,13 +206,12 @@ export const randomEmailInContentScrubber: RandomEmailInContentScrubberFn = (
   if (!matches) {
     // No email found, return as is
     return value
-  } else {
-    // Replace all matches with random email
-    const match = matches.pop() as string
-    value = value.replace(match, randomEmailScrubber(value, additionalParams))
-
-    return value
   }
+  // Replace all matches with random email
+  const match = matches.pop() as string
+  value = value.replace(match, randomEmailScrubber(value, additionalParams))
+
+  return value
 }
 
 /*
@@ -228,7 +226,7 @@ export interface SaltedHashScrubberParams {
 export type SaltedHashScrubberFn = ScrubberFn<string, SaltedHashScrubberParams>
 
 export const saltedHashScrubber: SaltedHashScrubberFn = (value, params) => {
-  if (!params || !params.initializationVector) {
+  if (!params?.initializationVector) {
     throw new Error('Initialization vector is missing')
   }
 
@@ -253,7 +251,7 @@ export const saltedHashEmailScrubber: SaltedHashEmailScrubberFn = (value, additi
     ...additionalParams,
   } as SaltedHashEmailScrubberParams
 
-  if (!params || !params.initializationVector) {
+  if (!params?.initializationVector) {
     throw new Error('Initialization vector is missing')
   }
 

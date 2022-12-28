@@ -24,7 +24,7 @@ export class Scrubber {
   ) {
     const defaultCfg: Partial<ScrubberConfig> = { throwOnError: false, preserveFalsy: true }
 
-    this.initializationVector = initialzationVector ? initialzationVector : nanoid()
+    this.initializationVector = initialzationVector || nanoid()
     this.scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
     this.cfg = { ...defaultCfg, ...this.expandCfg(cfg) }
     this.cfg.splitFields = this.splitFields(cfg)
@@ -46,7 +46,7 @@ export class Scrubber {
   }
 
   private applyScrubbers<T>(data: T, parents: string[] = []): T {
-    const dataCopy = Array.isArray(data) ? [...data] : { ...data }
+    const dataCopy: any = Array.isArray(data) ? [...data] : { ...data }
 
     Object.keys(dataCopy).forEach(key => {
       let scrubberCurrentField = this.cfg.fields[key]
@@ -57,9 +57,8 @@ export class Scrubber {
         parents &&
         this.arrayContainsInOrder(parents, this.cfg.splitFields[key])
       ) {
-        const splitFieldParentCfg: string[] = (
-          this.cfg.splitFields[key] ? this.cfg.splitFields[key] : []
-        ) as string[]
+        const splitFieldParentCfg: string[] = this.cfg.splitFields[key] || []
+
         const recomposedKey = [...splitFieldParentCfg, key].join('.')
         scrubberCurrentField = this.cfg.fields[recomposedKey]
       }
@@ -104,7 +103,7 @@ export class Scrubber {
       }
     })
 
-    return dataCopy as any
+    return dataCopy
   }
 
   /*

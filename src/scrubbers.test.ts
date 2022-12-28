@@ -31,7 +31,7 @@ describe('preserveOriginalScrubber', () => {
     expect(preserveOriginalScrubber(true)).toBe(true)
     expect(preserveOriginalScrubber(1)).toBe(1)
     expect(preserveOriginalScrubber('foo')).toBe('foo')
-    expect(preserveOriginalScrubber(null)).toBe(null)
+    expect(preserveOriginalScrubber(null)).toBeNull()
   })
 })
 
@@ -72,35 +72,35 @@ describe('unixTimestampScrubber', () => {
     // Wednesday, July 3, 2019 9:35:21 AM to
     // Wednesday, July 3, 2019 00:00:00 AM
     const result = unixTimestampScrubber('1562146521', { excludeTime: true })
-    expect(result).toEqual(1562112000)
+    expect(result).toBe(1562112000)
   })
 
   test('scrubs only time', () => {
     // Wednesday, July 3, 2019 9:35:21 AM to
     // Wednesday, July 3, 2019 00:00:00 AM
     const result = unixTimestampScrubber(1562146521, { excludeTime: true })
-    expect(result).toEqual(1562112000)
+    expect(result).toBe(1562112000)
   })
 
   test('scrubs only day', () => {
     // Wednesday, July 3, 2019 9:35:21 AM to
     // Wednesday, July 1, 2019 9:35:21 AM
     const result = unixTimestampScrubber(1562146521, { excludeDay: true })
-    expect(result).toEqual(1561973721)
+    expect(result).toBe(1561973721)
   })
 
   test('scrubs day and month', () => {
     // Wednesday, July 3, 2019 9:35:21 AM to
     // Wednesday, January 1, 2019 9:35:21 AM
     const result = unixTimestampScrubber(1562146521, { excludeDay: true, excludeMonth: true })
-    expect(result).toEqual(1546335321)
+    expect(result).toBe(1546335321)
   })
 
   test('scrubs only year', () => {
     // Wednesday, July 3, 2019 9:35:21 AM to
     // Wednesday, July 3, 1970 9:35:21 AM
     const result = unixTimestampScrubber(1562146521, { excludeYear: true })
-    expect(result).toEqual(15845721)
+    expect(result).toBe(15845721)
   })
 })
 
@@ -115,27 +115,27 @@ describe('isoDateStringScrubber', () => {
 
   test('scrubs only day', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeDay: true })
-    expect(result).toEqual('2019-05-01')
+    expect(result).toBe('2019-05-01')
   })
 
   test('scrubs only month', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeMonth: true })
-    expect(result).toEqual('2019-01-12')
+    expect(result).toBe('2019-01-12')
   })
 
   test('scrubs both day and month', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeDay: true, excludeMonth: true })
-    expect(result).toEqual('2019-01-01')
+    expect(result).toBe('2019-01-01')
   })
 
   test('scrubs only year', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeYear: true })
-    expect(result).toEqual('1970-05-12')
+    expect(result).toBe('1970-05-12')
   })
 
   test('scrubs both day and year', () => {
     const result = isoDateStringScrubber('2019-05-12', { excludeDay: true, excludeYear: true })
-    expect(result).toEqual('1970-05-01')
+    expect(result).toBe('1970-05-01')
   })
 })
 
@@ -155,12 +155,12 @@ describe('charsFromRightScrubber', () => {
 
   test('removes 2 chars', () => {
     const result = charsFromRightScrubber('76543', { count: 2, replacement: 'X' })
-    expect(result).toEqual('765XX')
+    expect(result).toBe('765XX')
   })
 
   test('does not fail/crash if count > input length', () => {
     const result = charsFromRightScrubber('123', { count: 5, replacement: 'X' })
-    expect(result).toEqual('XXX')
+    expect(result).toBe('XXX')
   })
 })
 
@@ -170,13 +170,13 @@ test('charsFromRightScrubber - Full replacement', () => {
     replacement: '456',
     replaceFull: true,
   })
-  expect(result).toEqual('blabla_456')
+  expect(result).toBe('blabla_456')
 })
 
 describe('randomScrubber', () => {
   test('generates with default arguments', () => {
     const result = randomScrubber('secret')
-    expect(result).not.toEqual('secret')
+    expect(result).not.toBe('secret')
   })
 
   test('accepts length', () => {
@@ -186,14 +186,14 @@ describe('randomScrubber', () => {
 
   test('accepts alphabet and length', () => {
     const result = randomScrubber('secret', { alphabet: 'a', length: 5 })
-    expect(result).toEqual('aaaaa')
+    expect(result).toBe('aaaaa')
   })
 })
 
 describe('randomEmailScrubber', () => {
   test('generates with default arguments', () => {
     const result = randomEmailScrubber('secret')
-    expect(result).not.toEqual('secret')
+    expect(result).not.toBe('secret')
     expect(result).toContain('@example.com')
   })
 
@@ -203,7 +203,7 @@ describe('randomEmailScrubber', () => {
       length: 5,
       domain: '@customdomain.com',
     })
-    expect(result).toEqual('aaaaa@customdomain.com')
+    expect(result).toBe('aaaaa@customdomain.com')
   })
 })
 
@@ -240,7 +240,7 @@ describe('saltedHashScrubber', () => {
     const initializationVector = nanoid()
 
     const result = saltedHashScrubber('secret', { initializationVector })
-    expect(result).not.toEqual('secret')
+    expect(result).not.toBe('secret')
 
     const result2 = saltedHashScrubber('secret', { initializationVector })
     expect(result).toEqual(result2)
@@ -260,7 +260,7 @@ describe('saltedHashEmailScrubber', () => {
       domain: '@naturalcycles.com',
     })
     console.log(result)
-    expect(result).not.toEqual('secret')
+    expect(result).not.toBe('secret')
     expect(result).toMatchSnapshot()
   })
 })
@@ -269,25 +269,25 @@ describe('bcryptStringScrubber', () => {
   test('generates valid bcrypt string while maintaining algo and cost factor', () => {
     const result = bcryptStringScrubber(bryptStr1)
     expect(result).not.toEqual(bryptStr1)
-    expect(result!.substr(0, 7)).toEqual('$2a$12$')
+    expect(result!.substr(0, 7)).toBe('$2a$12$')
     expect(result!.length).toEqual(bryptStr1.length)
   })
 
   test('ensure older cost factor is preserved', () => {
     const result = bcryptStringScrubber(bryptStr2)
     expect(result).not.toEqual(bryptStr2)
-    expect(result!.substr(0, 7)).toEqual('$2a$10$')
+    expect(result!.substr(0, 7)).toBe('$2a$10$')
   })
   test('handling undefined and empty', () => {
     const undefinedResult = bcryptStringScrubber(undefined)
     expect(undefinedResult).toBeUndefined()
 
     const emptyResult = bcryptStringScrubber('')
-    expect(emptyResult).toEqual('')
+    expect(emptyResult).toBe('')
   })
   test('handling non-valid bcrypt strings, should return valid bcrypt string', () => {
     const result = bcryptStringScrubber('stringWithToFew$')
-    expect(result!.substr(0, 7)).toEqual('$2a$12$')
+    expect(result!.substr(0, 7)).toBe('$2a$12$')
     expect(result!.length).toEqual(bryptStr1.length)
   })
   test('handling replacements map', () => {
@@ -295,9 +295,9 @@ describe('bcryptStringScrubber', () => {
       replacements: '$2a$10$:$2a$10$456,$2a$12$:$2a$12$123',
     }
     const result = bcryptStringScrubber(bryptStr1, params)
-    expect(result).toEqual('$2a$12$123')
+    expect(result).toBe('$2a$12$123')
 
     const result2 = bcryptStringScrubber(bryptStr2, params)
-    expect(result2).toEqual('$2a$10$456')
+    expect(result2).toBe('$2a$10$456')
   })
 })

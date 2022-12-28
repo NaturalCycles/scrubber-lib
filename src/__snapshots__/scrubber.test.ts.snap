@@ -2,13 +2,13 @@
 
 exports[`error handling logs errors by default 1`] = `
 [MockFunction] {
-  "calls": Array [
-    Array [
+  "calls": [
+    [
       "Error when applying scrubber 'faultyScrubber' to field 'target'",
     ],
   ],
-  "results": Array [
-    Object {
+  "results": [
+    {
       "type": "return",
       "value": undefined,
     },
@@ -18,13 +18,13 @@ exports[`error handling logs errors by default 1`] = `
 
 exports[`error handling logs errors by default 2`] = `
 [MockFunction] {
-  "calls": Array [
-    Array [
+  "calls": [
+    [
       [Error: ops],
     ],
   ],
-  "results": Array [
-    Object {
+  "results": [
+    {
       "type": "return",
       "value": undefined,
     },
@@ -33,17 +33,17 @@ exports[`error handling logs errors by default 2`] = `
 `;
 
 exports[`scrubs different types of data 1`] = `
-Array [
-  Object {
-    "array": Array [
+[
+  {
+    "array": [
       1,
       2,
-      Object {
+      {
         "pw": "notsecret",
       },
     ],
-    "buffer": Object {
-      "data": Array [
+    "buffer": {
+      "data": [
         100,
         97,
         116,
@@ -51,7 +51,7 @@ Array [
       ],
       "type": "Buffer",
     },
-    "date": Object {},
+    "date": {},
     "function": [Function],
     "map": Map {
       "b" => "c",
@@ -70,13 +70,13 @@ Array [
 `;
 
 exports[`supplying an initializationVector in config of saltedHashEmailScrubber should produce consistent results 1`] = `
-Object {
+{
   "email": "67a830fc650cb5c7f643db46c275f73f3c892d705be571e982826296b1c34019@example.com.br",
 }
 `;
 
 exports[`supplying an initializationVector in config should take precedence 1`] = `
-Object {
+{
   "id": "56f968eb428383c987ee241cb9b84ee9e1c131b9c4e5370e38cce6f399d4cecd",
 }
 `;
