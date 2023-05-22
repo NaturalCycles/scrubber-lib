@@ -10,7 +10,7 @@
   "devDependencies": {
     "@naturalcycles/dev-lib": "^13.14.2",
     "@naturalcycles/test-lib": "^1.0.3",
-    "@types/node": "^18.11.18",
+    "@types/node": "^20.2.3",
     "jest": "^29.3.1"
   },
   "files": [
