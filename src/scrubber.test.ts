@@ -1,5 +1,5 @@
-import { deepFreeze } from '@naturalcycles/test-lib'
 import { nanoid } from 'nanoid'
+import { deepFreeze } from '@naturalcycles/dev-lib/dist/testing'
 import { Scrubber } from './scrubber'
 import { ScrubberConfig, ScrubberFn, ScrubbersImpl } from './scrubber.model'
 import { saltedHashEmailScrubber, saltedHashScrubber } from './scrubbers'

@@ -161,7 +161,7 @@ export class Scrubber {
       const splitField = field.split('.')
 
       if (splitField.length > 1) {
-        const key = splitField.pop() as string
+        const key = splitField.pop()!
         output[key] = splitField
       }
     }
@@ -171,12 +171,8 @@ export class Scrubber {
   /**
    * returns true if all entries in b are equal to the end of entries of a. a may be longer than b.
    * Supports objects inside of arrays by removing any integer entries from a before comparing
-   *
-   * @param a
-   * @param b
-   * @private
    */
-  private arrayContainsInOrder(a: any[] | undefined, b: any[] | undefined) {
+  private arrayContainsInOrder(a: any[] | undefined, b: any[] | undefined): boolean {
     if (!a || !b) return false
     if (a === b) return true
     if (a.length < b.length) return false

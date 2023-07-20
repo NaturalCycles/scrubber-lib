@@ -208,7 +208,7 @@ export const randomEmailInContentScrubber: RandomEmailInContentScrubberFn = (
     return value
   }
   // Replace all matches with random email
-  const match = matches.pop() as string
+  const match = matches.pop()!
   value = value.replace(match, randomEmailScrubber(value, additionalParams))
 
   return value
