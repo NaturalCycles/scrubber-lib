@@ -52,7 +52,7 @@ export class Scrubber {
     )
   }
 
-  getScrubberSql(): string | undefined {
+  getScrubberSql(fieldName: string): string | undefined {
     const scrubberCurrentField = this.cfg.fields[fieldName]
     if (!scrubberCurrentField) return undefined
 

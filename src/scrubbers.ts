@@ -1,6 +1,6 @@
 import * as crypto from 'node:crypto'
 import { customAlphabet } from 'nanoid'
-import { ScrubberFn, ScrubbersImpl, ScrubberSQLFn, ScrubberSQLImpl } from './scrubber.model'
+import { ScrubberFn, ScrubbersImpl, ScrubberSQLFn, ScrubbersSQLImpl } from './scrubber.model'
 
 function encloseValueForSQL(value: string | number, type: string): string {
   if (type === 'STRING') return `'${value}'`
@@ -150,7 +150,7 @@ export const unixTimestampScrubber: UnixTimestampScrubberFn = (value, params = {
   return Math.round(date.getTime() / 1000)
 }
 
-export const unixTimestampScrubberSQL: UnixTimestampScrubberSQLFn = (fieldName, params = {}) => {
+export const unixTimestampScrubberSQL: UnixTimestampScrubberSQLFn = (params = {}) => {
   let replacement = 'TIMESTAMP_NTZ_FROM_PARTS('
 
   if (params.excludeYear) {
@@ -214,7 +214,6 @@ export const charsFromRightScrubber: CharsFromRightScrubberFn = (
 }
 
 export const charsFromRightScrubberSQL: CharsFromRightScrubberSQLFn = (
-  fieldName,
   params = { count: 99, replacement: 'X', replaceFull: false },
 ) => {
   const { count, replacement, replaceFull } = params
@@ -327,16 +326,20 @@ export const randomEmailInContentScrubber: RandomEmailInContentScrubberFn = (
   return value
 }
 
-export const randomEmailInContentScrubberSQL: RandomEmailInContentScrubberSQLFn = (
-  fieldName,
-  additionalParams,
-) => {
-  return `REGEXP_REPLACE(
+export const randomEmailInContentScrubberSQL: RandomEmailInContentScrubberSQLFn =
+  additionalParams => {
+    const params = {
+      alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE,
+      length: 16,
+      domain: '@example.com',
+      ...additionalParams,
+    }
+    return `REGEXP_REPLACE(
     ${sqlValueToReplace},
     '[a-zA-Z1-9\\._-]*@[a-zA-Z1-9\\._-]*\\.[a-zA-Z_-]{2,3}',
-    RANDSTR(${additionalParams.length}, HASH(${sqlValueToReplace})
-  ) || '${additionalParams.domain}'`
-}
+    RANDSTR(${params.length}, HASH(${sqlValueToReplace})
+  ) || '${params.domain}'`
+  }
 
 /*
   Salted hash scrubber.
@@ -359,7 +362,7 @@ export const saltedHashScrubber: SaltedHashScrubberFn = (value, params) => {
   return crypto.createHash('sha256').update(value).update(params.initializationVector).digest('hex')
 }
 
-export const saltedHashScrubberSQL: SaltedHashScrubberSQLFn = (fieldName, params) => {
+export const saltedHashScrubberSQL: SaltedHashScrubberSQLFn = params => {
   if (!params?.initializationVector) {
     throw new Error('Initialization vector is missing')
   }
@@ -393,10 +396,7 @@ export const saltedHashEmailScrubber: SaltedHashEmailScrubberFn = (value, additi
   return saltedHashScrubber(value, params) + params.domain
 }
 
-export const saltedHashEmailScrubberSQL: SaltedHashEmailScrubberSQLFn = (
-  fieldName,
-  additionalParams,
-) => {
+export const saltedHashEmailScrubberSQL: SaltedHashEmailScrubberSQLFn = additionalParams => {
   const params = {
     domain: '@example.com',
     ...additionalParams,
@@ -416,7 +416,7 @@ export const saltedHashEmailScrubberSQL: SaltedHashEmailScrubberSQLFn = (
  */
 export type BcryptStringScrubberFn = ScrubberFn<string | undefined, BcryptStringScrubberParams>
 
-export type BcryptStringScrubberSQLFn = ScrubberFn<BcryptStringScrubberParams>
+export type BcryptStringScrubberSQLFn = ScrubberSQLFn<BcryptStringScrubberParams>
 
 /*
  replacements string is a comma seperated list of key-value pairs (seperated by :) that maps bcrypt string prefix
@@ -446,7 +446,7 @@ export const bcryptStringScrubber: BcryptStringScrubberFn = (value, params) => {
 
   return `${prefix}${customAlphabet(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)()}`
 }
-export const bcryptStringScrubberSQL: BcryptStringScrubberSQLFn = (fieldName, params) => {
+export const bcryptStringScrubberSQL: BcryptStringScrubberSQLFn = params => {
   let replacementDLL =
     "WHEN TRUE THEN ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(value, '$'), 0, 3), '$') || '$' || RANDSTR(53, HASH(value))"
   // unpack the replacements here rather than in SQL
@@ -496,7 +496,7 @@ export const defaultScrubbers: ScrubbersImpl = {
   bcryptStringScrubber,
 }
 
-export const defaultScrubbersSQL: ScrubberSQLImpl = {
+export const defaultScrubbersSQL: ScrubbersSQLImpl = {
   staticScrubber: staticScrubberSQL,
   preserveOriginalScrubber: preserveOriginalScrubberSQL,
   isoDateStringScrubber: isoDateStringScrubberSQL,

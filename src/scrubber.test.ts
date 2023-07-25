@@ -284,7 +284,7 @@ test('initializationVector passed to scrubber constructor is passed to scrubbers
   const toBeSalted = 'id1'
   const data = [{ id: toBeSalted }]
   const initializationVector = nanoid()
-  const scrubber1 = new Scrubber(cfg, additionalScrubbers, initializationVector)
+  const scrubber1 = new Scrubber(cfg, additionalScrubbers, undefined, initializationVector)
   scrubber1.scrub(data)
   expect(mockScrubber).toHaveBeenCalledWith(toBeSalted, {
     initializationVector: expect.stringMatching(initializationVector),
@@ -292,7 +292,7 @@ test('initializationVector passed to scrubber constructor is passed to scrubbers
   const vector1 = mockScrubber.mock.calls[0][1]
   const result1 = mockScrubber.mock.results[0].value
 
-  const scrubber2 = new Scrubber(cfg, additionalScrubbers, initializationVector)
+  const scrubber2 = new Scrubber(cfg, additionalScrubbers, undefined, initializationVector)
   scrubber2.scrub(data)
   const vector2 = mockScrubber.mock.calls[1][1]
   const result2 = mockScrubber.mock.results[1].value
@@ -321,7 +321,7 @@ test('supplying an initializationVector in config should take precedence', () =>
   const toBeSalted = 'id1'
   const data = [{ id: toBeSalted }]
   const initializationVector = nanoid()
-  const scrubber1 = new Scrubber(cfg, additionalScrubbers, initializationVector)
+  const scrubber1 = new Scrubber(cfg, additionalScrubbers, undefined, initializationVector)
   const result = scrubber1.scrub(data)
 
   // Result should stay the same since 123 is used as init vector
