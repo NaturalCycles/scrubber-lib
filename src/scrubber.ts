@@ -1,11 +1,11 @@
 import { nanoid } from 'nanoid'
-import { _deepEquals, StringMap } from '@naturalcycles/js-lib'
-import { ScrubberConfig, ScrubbersImpl, ScrubbersSQLImpl } from './scrubber.model'
+import { _assert, _deepEquals, StringMap } from '@naturalcycles/js-lib'
+import { ScrubberConfig, ScrubbersMap, ScrubbersSQLMap } from './scrubber.model'
 import { defaultScrubbers, defaultScrubbersSQL } from './scrubbers'
 
 export class Scrubber {
-  private readonly scrubbers: ScrubbersImpl
-  private readonly scrubbersSQL: ScrubbersSQLImpl
+  private readonly scrubbersMap: ScrubbersMap
+  private readonly scrubbersSQLMap: ScrubbersSQLMap
   private readonly initializationVector: string
   private readonly rootType?: string
 
@@ -13,34 +13,34 @@ export class Scrubber {
    * Create new scrubber instance
    *
    * @param cfg
-   * @param additionalScrubbersImpl optional additional scrubbers
-   * @param additionalScrubbersSQLImpl optional additional scrubbers SQL
+   * @param additionalScrubbersMap optional additional scrubbers
+   * @param additionalScrubbersSQLMap optional additional scrubbers SQL
    * @param initializationVector optional initialization vector used by some scrubbers.
    * @param rootType optional root type. Assumes all objects passed to this scubber is of named type for the sake of parent matching.
    */
   constructor(
     private cfg: ScrubberConfig,
-    additionalScrubbersImpl?: ScrubbersImpl,
-    additionalScrubbersSQLImpl?: ScrubbersSQLImpl,
+    additionalScrubbersMap?: ScrubbersMap,
+    additionalScrubbersSQLMap?: ScrubbersSQLMap,
     initializationVector?: string,
     rootType?: string,
   ) {
     const defaultCfg: Partial<ScrubberConfig> = { throwOnError: false, preserveFalsy: true }
 
     this.initializationVector = initializationVector || nanoid()
-    this.scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
-    this.scrubbersSQL = { ...defaultScrubbersSQL, ...additionalScrubbersSQLImpl }
+    this.scrubbersMap = { ...defaultScrubbers, ...additionalScrubbersMap }
+    this.scrubbersSQLMap = { ...defaultScrubbersSQL, ...additionalScrubbersSQLMap }
     this.cfg = { ...defaultCfg, ...this.expandCfg(cfg) }
     this.cfg.splitFields = this.splitFields(cfg)
-    this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
+    this.checkIfScrubbersExistAndRaise(cfg, this.scrubbersMap)
     this.rootType = rootType
   }
 
   static getScrubberForType(
     rootType: string,
     cfg: ScrubberConfig,
-    additionalScrubbersImpl?: ScrubbersImpl,
-    additionalScrubbersSQLImpl?: ScrubbersSQLImpl,
+    additionalScrubbersImpl?: ScrubbersMap,
+    additionalScrubbersSQLImpl?: ScrubbersSQLMap,
     initializationVector?: string,
   ): Scrubber {
     return new Scrubber(
@@ -52,20 +52,23 @@ export class Scrubber {
     )
   }
 
+  /**
+   * Returns undefined if there's no scrubber defined for the field.
+   */
   getScrubberSql(fieldName: string): string | undefined {
     const scrubberCurrentField = this.cfg.fields[fieldName]
     if (!scrubberCurrentField) return undefined
 
-    const params = {
+    const scrubberSQLFactory = this.scrubbersSQLMap[scrubberCurrentField.scrubber]
+    _assert(
+      scrubberSQLFactory,
+      `No SQL factory for ${scrubberCurrentField.scrubber}, used for ${fieldName}`,
+    )
+
+    return scrubberSQLFactory({
       initializationVector: this.initializationVector,
       ...scrubberCurrentField.params,
-    }
-    const scrubberSQLFactory = this.scrubbersSQL[scrubberCurrentField.scrubber]
-    if (!scrubberSQLFactory) {
-      console.warn(`No SQL factory for ${scrubberCurrentField.scrubber}, used for ${fieldName}`)
-      return undefined
-    }
-    return scrubberSQLFactory(params)
+    })
   }
 
   scrub<T>(data: T): T {
@@ -109,7 +112,7 @@ export class Scrubber {
         return
       }
 
-      const scrubber = this.scrubbers[scrubberCurrentField.scrubber]!
+      const scrubber = this.scrubbersMap[scrubberCurrentField.scrubber]!
       const params = {
         initializationVector: this.initializationVector,
         ...scrubberCurrentField.params,
@@ -169,7 +172,7 @@ export class Scrubber {
     return newCfg
   }
 
-  private checkIfScrubbersExistAndRaise(cfg: ScrubberConfig, scrubbers: ScrubbersImpl): void {
+  private checkIfScrubbersExistAndRaise(cfg: ScrubberConfig, scrubbers: ScrubbersMap): void {
     if (!cfg.fields) throw new Error("Missing the 'fields' key on ScrubberConfig")
 
     const scrubbersOnConfig = Object.keys(cfg.fields).map(field => cfg.fields[field]!.scrubber)

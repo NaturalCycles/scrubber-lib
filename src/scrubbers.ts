@@ -1,10 +1,11 @@
 import * as crypto from 'node:crypto'
+import { _assert } from '@naturalcycles/js-lib'
 import { customAlphabet } from 'nanoid'
-import { ScrubberFn, ScrubbersImpl, ScrubberSQLFn, ScrubbersSQLImpl } from './scrubber.model'
+import { ScrubberFn, ScrubbersMap, ScrubberSQLFn, ScrubbersSQLMap } from './scrubber.model'
 
 function encloseValueForSQL(value: string | number, type: string): string {
   if (type === 'STRING') return `'${value}'`
-  return value.toString()
+  return String(value)
 }
 
 // The name of the original value in the SQL statement
@@ -53,7 +54,7 @@ export const staticScrubber: StaticScrubberFn = (value, params = { replacement: 
   params.replacement
 
 export const staticScrubberSQL: StaticScrubberSQLFn = (params = { replacement: '' }) => {
-  const replacement = params.replacement
+  const { replacement } = params
   const type = typeof replacement === 'number' ? 'NUMBER' : 'STRING'
 
   return encloseValueForSQL(replacement, type)
@@ -78,11 +79,11 @@ export const isoDateStringScrubber: ISODateStringScrubberFn = (value, params = {
   if (!value) return
 
   if (value && params.excludeDay) {
-    value = value.substr(0, 8) + '01'
+    value = value.slice(0, 8) + '01'
   }
 
   if (value && params.excludeMonth) {
-    value = value.substr(0, 5) + '01' + value.substr(7, 3)
+    value = value.slice(0, 5) + '01' + value.substr(7, 3)
   }
 
   if (value && params.excludeYear) {
@@ -101,7 +102,6 @@ export const isoDateStringScrubberSQL: ISODateStringScrubberSQLFn = (params = {}
   if (params.excludeMonth) {
     replacement = `SUBSTR(${replacement}, 0, 5) || '01' || SUBSTR(${replacement}, 7, 3)`
   }
-
   if (params.excludeYear) {
     replacement = `'1970' || SUBSTR(${replacement}, 4, 9)`
   }
@@ -250,9 +250,9 @@ export const randomScrubber: RandomScrubberFn = (value, additionalParams) => {
 }
 
 export const randomScrubberSQL: RandomScrubberSQLFn = additionalParams => {
-  const params = { alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE, length: 16, ...additionalParams }
+  const { length } = { length: 16, ...additionalParams }
   // This doesn't respect the alphabet :(
-  return `RANDSTR(${params.length}, HASH(${sqlValueToReplace}))`
+  return `RANDSTR(${length}, HASH(${sqlValueToReplace}))`
 }
 
 /*
@@ -282,14 +282,14 @@ export const randomEmailScrubber: RandomEmailScrubberFn = (value, additionalPara
 }
 
 export const randomEmailScrubberSQL: RandomEmailScrubberSQLFn = additionalParams => {
-  const params = {
-    alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE,
+  const { length, domain } = {
+    // alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE,
     length: 16,
     domain: '@example.com',
     ...additionalParams,
   }
   // This doesn't respect the alphabet :(
-  return `RANDSTR(${params.length}, HASH(${sqlValueToReplace})) || '${params.domain}'`
+  return `RANDSTR(${length}, HASH(${sqlValueToReplace})) || '${domain}'`
 }
 
 /*
@@ -312,8 +312,7 @@ export const randomEmailInContentScrubber: RandomEmailInContentScrubberFn = (
   additionalParams,
 ) => {
   // Email regex, allows letters
-  // eslint-disable-next-line no-useless-escape
-  const emailRegex = /([a-zA-Z1-9\._-]*@[a-zA-Z1-9\._-]*\.[a-zA-Z_-]{2,3})/
+  const emailRegex = /([a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\.[a-zA-Z_-]{2,3})/
   const matches = emailRegex.exec(value)
   if (!matches) {
     // No email found, return as is
@@ -328,17 +327,17 @@ export const randomEmailInContentScrubber: RandomEmailInContentScrubberFn = (
 
 export const randomEmailInContentScrubberSQL: RandomEmailInContentScrubberSQLFn =
   additionalParams => {
-    const params = {
-      alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE,
+    const { length, domain } = {
+      // alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE,
       length: 16,
       domain: '@example.com',
       ...additionalParams,
     }
     return `REGEXP_REPLACE(
     ${sqlValueToReplace},
-    '[a-zA-Z1-9\\._-]*@[a-zA-Z1-9\\._-]*\\.[a-zA-Z_-]{2,3}',
-    RANDSTR(${params.length}, HASH(${sqlValueToReplace})
-  ) || '${params.domain}'`
+    '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
+    RANDSTR(${length}, HASH(${sqlValueToReplace})
+  ) || '${domain}'`
   }
 
 /*
@@ -355,17 +354,13 @@ export type SaltedHashScrubberFn = ScrubberFn<string, SaltedHashScrubberParams>
 export type SaltedHashScrubberSQLFn = ScrubberSQLFn<SaltedHashScrubberParams>
 
 export const saltedHashScrubber: SaltedHashScrubberFn = (value, params) => {
-  if (!params?.initializationVector) {
-    throw new Error('Initialization vector is missing')
-  }
+  _assert(params?.initializationVector, 'Initialization vector is missing')
 
   return crypto.createHash('sha256').update(value).update(params.initializationVector).digest('hex')
 }
 
 export const saltedHashScrubberSQL: SaltedHashScrubberSQLFn = params => {
-  if (!params?.initializationVector) {
-    throw new Error('Initialization vector is missing')
-  }
+  _assert(params?.initializationVector, 'Initialization vector is missing')
   return `SHA2(${sqlValueToReplace} || '${params.initializationVector}', 256)`
 }
 
@@ -389,24 +384,20 @@ export const saltedHashEmailScrubber: SaltedHashEmailScrubberFn = (value, additi
     ...additionalParams,
   } as SaltedHashEmailScrubberParams
 
-  if (!params?.initializationVector) {
-    throw new Error('Initialization vector is missing')
-  }
+  _assert(params?.initializationVector, 'Initialization vector is missing')
 
   return saltedHashScrubber(value, params) + params.domain
 }
 
 export const saltedHashEmailScrubberSQL: SaltedHashEmailScrubberSQLFn = additionalParams => {
-  const params = {
+  const { initializationVector, domain } = {
     domain: '@example.com',
     ...additionalParams,
   } as SaltedHashEmailScrubberParams
 
-  if (!params?.initializationVector) {
-    throw new Error('Initialization vector is missing')
-  }
+  _assert(initializationVector, 'Initialization vector is missing')
 
-  return `SHA2(${sqlValueToReplace} || '${params.initializationVector}', 256) || '${params.domain}'`
+  return `SHA2(${sqlValueToReplace} || '${initializationVector}', 256) || '${domain}'`
 }
 
 /*
@@ -481,7 +472,7 @@ function nthChar(str: string, character: string, n: number): number | undefined 
   }
 }
 
-export const defaultScrubbers: ScrubbersImpl = {
+export const defaultScrubbers: ScrubbersMap = {
   staticScrubber,
   preserveOriginalScrubber,
   isoDateStringScrubber,
@@ -496,7 +487,7 @@ export const defaultScrubbers: ScrubbersImpl = {
   bcryptStringScrubber,
 }
 
-export const defaultScrubbersSQL: ScrubbersSQLImpl = {
+export const defaultScrubbersSQL: ScrubbersSQLMap = {
   staticScrubber: staticScrubberSQL,
   preserveOriginalScrubber: preserveOriginalScrubberSQL,
   isoDateStringScrubber: isoDateStringScrubberSQL,

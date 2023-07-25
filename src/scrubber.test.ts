@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid'
 import { deepFreeze } from '@naturalcycles/dev-lib/dist/testing'
 import { Scrubber } from './scrubber'
-import { ScrubberConfig, ScrubberFn, ScrubbersImpl } from './scrubber.model'
+import { ScrubberConfig, ScrubberFn, ScrubbersMap } from './scrubber.model'
 import { saltedHashEmailScrubber, saltedHashScrubber } from './scrubbers'
 import {
   configEmailScrubberMock,
@@ -15,7 +15,7 @@ import {
 const scrub = <T>(
   data: T,
   cfg: ScrubberConfig = configStaticScrubbersMock(),
-  additionalScrubbersImpl?: ScrubbersImpl,
+  additionalScrubbersImpl?: ScrubbersMap,
 ): T => {
   const scrubber = new Scrubber(cfg, additionalScrubbersImpl)
   return scrubber.scrub(data)
@@ -83,7 +83,7 @@ test('keeps not modified fields', () => {
 
 test('supports additional scrubbers', () => {
   const mockScrubber: ScrubberFn = () => 'modified'
-  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+  const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
     fields: {
@@ -210,7 +210,7 @@ test('scrubs different types of data', () => {
 
 test('initializationVector is passed as param to scrubbers', () => {
   const mockScrubber = jest.fn(() => 'modified') as any
-  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+  const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
     fields: {
@@ -239,7 +239,7 @@ test('initializationVector is passed as param to scrubbers', () => {
 
 test('Ensure initializationVector is random and affects saltedHashScrubber', () => {
   const mockScrubber = jest.fn(saltedHashScrubber) as any
-  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+  const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
     fields: {
@@ -271,7 +271,7 @@ test('Ensure initializationVector is random and affects saltedHashScrubber', () 
 
 test('initializationVector passed to scrubber constructor is passed to scrubbers', () => {
   const mockScrubber = jest.fn(saltedHashScrubber) as any
-  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+  const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
     fields: {
@@ -305,7 +305,7 @@ test('initializationVector passed to scrubber constructor is passed to scrubbers
 test('supplying an initializationVector in config should take precedence', () => {
   const configVector = '123'
   const mockScrubber = jest.fn(saltedHashScrubber) as any
-  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+  const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
     fields: {
@@ -332,7 +332,7 @@ test('supplying an initializationVector in config of saltedHashEmailScrubber sho
   const configVector = '123'
   const domain = '@example.com.br'
   const mockScrubber = jest.fn(saltedHashEmailScrubber) as any
-  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+  const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
     fields: {
