@@ -1,6 +1,14 @@
 import * as crypto from 'node:crypto'
 import { customAlphabet } from 'nanoid'
-import { ScrubberFn, ScrubbersImpl } from './scrubber.model'
+import { ScrubberFn, ScrubbersImpl, ScrubberSQLFn, ScrubberSQLImpl } from './scrubber.model'
+
+function encloseValueForSQL(value: string | number, type: string): string {
+  if (type === 'STRING') return `'${value}'`
+  return value.toString()
+}
+
+// The name of the original value in the SQL statement
+const sqlValueToReplace = 'VAL'
 
 /*
  Undefined scrubber
@@ -9,7 +17,11 @@ import { ScrubberFn, ScrubbersImpl } from './scrubber.model'
  */
 export type UndefinedScrubberFn = ScrubberFn<any, undefined>
 
+export type UndefinedScrubberSQLFn = ScrubberSQLFn<undefined>
+
 export const undefinedScrubber: UndefinedScrubberFn = () => undefined
+
+export const undefinedScrubberSQL: UndefinedScrubberSQLFn = () => 'NULL'
 
 /*
  Preserve original scrubber
@@ -19,7 +31,11 @@ export const undefinedScrubber: UndefinedScrubberFn = () => undefined
  */
 export type PreserveOriginalScrubberFn = ScrubberFn<any, undefined>
 
+export type PreserveOriginalScrubberSQLFn = ScrubberSQLFn<undefined>
+
 export const preserveOriginalScrubber: PreserveOriginalScrubberFn = value => value
+
+export const preserveOriginalScrubberSQL: PreserveOriginalScrubberSQLFn = () => sqlValueToReplace
 
 /*
  Static scrubber
@@ -31,9 +47,17 @@ export interface StaticScrubberParams {
 }
 export type StaticScrubberFn = ScrubberFn<any, StaticScrubberParams>
 
+export type StaticScrubberSQLFn = ScrubberSQLFn<StaticScrubberParams>
+
 export const staticScrubber: StaticScrubberFn = (value, params = { replacement: '' }) =>
   params.replacement
 
+export const staticScrubberSQL: StaticScrubberSQLFn = (params = { replacement: '' }) => {
+  const replacement = params.replacement
+  const type = typeof replacement === 'number' ? 'NUMBER' : 'STRING'
+
+  return encloseValueForSQL(replacement, type)
+}
 /*
  ISO Date string scrubber
 
@@ -47,6 +71,8 @@ export interface ISODateStringScrubberParams {
   excludeYear?: boolean
 }
 export type ISODateStringScrubberFn = ScrubberFn<string | undefined, ISODateStringScrubberParams>
+
+export type ISODateStringScrubberSQLFn = ScrubberSQLFn<ISODateStringScrubberParams>
 
 export const isoDateStringScrubber: ISODateStringScrubberFn = (value, params = {}) => {
   if (!value) return
@@ -66,6 +92,23 @@ export const isoDateStringScrubber: ISODateStringScrubberFn = (value, params = {
   return value
 }
 
+export const isoDateStringScrubberSQL: ISODateStringScrubberSQLFn = (params = {}) => {
+  let replacement = sqlValueToReplace
+
+  if (params.excludeDay) {
+    replacement = `SUBSTR(${replacement}, 0, 8) || '01'`
+  }
+  if (params.excludeMonth) {
+    replacement = `SUBSTR(${replacement}, 0, 5) || '01' || SUBSTR(${replacement}, 7, 3)`
+  }
+
+  if (params.excludeYear) {
+    replacement = `'1970' || SUBSTR(${replacement}, 4, 9)`
+  }
+
+  return replacement // "SUBSTR(VAL, 0, 8) || '01'"
+}
+
 /*
  Unix timestamp (timestamp in seconds) scrubber
  */
@@ -79,6 +122,7 @@ export type UnixTimestampScrubberFn = ScrubberFn<
   number | string | undefined,
   UnixTimestampScrubberParams
 >
+export type UnixTimestampScrubberSQLFn = ScrubberSQLFn<UnixTimestampScrubberParams>
 
 export const unixTimestampScrubber: UnixTimestampScrubberFn = (value, params = {}) => {
   if (!value) return
@@ -106,6 +150,36 @@ export const unixTimestampScrubber: UnixTimestampScrubberFn = (value, params = {
   return Math.round(date.getTime() / 1000)
 }
 
+export const unixTimestampScrubberSQL: UnixTimestampScrubberSQLFn = (fieldName, params = {}) => {
+  let replacement = 'TIMESTAMP_NTZ_FROM_PARTS('
+
+  if (params.excludeYear) {
+    replacement += '1970, '
+  } else {
+    replacement += `DATE_PART('YEAR', ${sqlValueToReplace}), `
+  }
+
+  if (params.excludeMonth) {
+    replacement += '1, '
+  } else {
+    replacement += `DATE_PART('MONTH', ${sqlValueToReplace}), `
+  }
+
+  if (params.excludeDay) {
+    replacement += '1, '
+  } else {
+    replacement += `DATE_PART('DAY', ${sqlValueToReplace}), `
+  }
+
+  if (params.excludeTime) {
+    replacement += '0, 0, 0)'
+  } else {
+    replacement += `DATE_PART('HOUR', ${sqlValueToReplace}), DATE_PART('MINUTE', ${sqlValueToReplace}), DATE_PART('SECOND', ${sqlValueToReplace}))`
+  }
+
+  return replacement
+}
+
 /*
   Chars From Right scrubber
 
@@ -122,6 +196,8 @@ export interface CharsFromRightScrubberParams {
 }
 export type CharsFromRightScrubberFn = ScrubberFn<string | undefined, CharsFromRightScrubberParams>
 
+export type CharsFromRightScrubberSQLFn = ScrubberSQLFn<CharsFromRightScrubberParams>
+
 export const charsFromRightScrubber: CharsFromRightScrubberFn = (
   value,
   params = { count: 99, replacement: 'X', replaceFull: false },
@@ -135,6 +211,20 @@ export const charsFromRightScrubber: CharsFromRightScrubberFn = (
   }
   const lengthToReplace = Math.min(count, value.length)
   return value.substr(0, value.length - count) + replacement.repeat(lengthToReplace)
+}
+
+export const charsFromRightScrubberSQL: CharsFromRightScrubberSQLFn = (
+  fieldName,
+  params = { count: 99, replacement: 'X', replaceFull: false },
+) => {
+  const { count, replacement, replaceFull } = params
+
+  if (replaceFull) {
+    // remove $count chars from the right, and replace it by $replacement
+    return `SUBSTR(${sqlValueToReplace}, 0, LEN(${sqlValueToReplace}) - ${count}) || '${replacement}'`
+  }
+  // replace each chars from the right by $replacement until $count chars are replaced
+  return `SUBSTR(${sqlValueToReplace}, 0, LEN(${sqlValueToReplace}) - ${count}) || REPEAT('${replacement}', MIN(${count}, LEN(${sqlValueToReplace})))`
 }
 
 /*
@@ -153,9 +243,17 @@ export interface RandomScrubberParams {
 
 export type RandomScrubberFn = ScrubberFn<string, RandomScrubberParams>
 
+export type RandomScrubberSQLFn = ScrubberSQLFn<RandomScrubberParams>
+
 export const randomScrubber: RandomScrubberFn = (value, additionalParams) => {
   const params = { alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE, length: 16, ...additionalParams }
   return customAlphabet(params.alphabet, params['length'])()
+}
+
+export const randomScrubberSQL: RandomScrubberSQLFn = additionalParams => {
+  const params = { alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE, length: 16, ...additionalParams }
+  // This doesn't respect the alphabet :(
+  return `RANDSTR(${params.length}, HASH(${sqlValueToReplace}))`
 }
 
 /*
@@ -172,6 +270,8 @@ export interface RandomEmailScrubberParams {
 
 export type RandomEmailScrubberFn = ScrubberFn<string, RandomEmailScrubberParams>
 
+export type RandomEmailScrubberSQLFn = ScrubberSQLFn<RandomEmailScrubberParams>
+
 export const randomEmailScrubber: RandomEmailScrubberFn = (value, additionalParams) => {
   const params = {
     alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE,
@@ -180,6 +280,17 @@ export const randomEmailScrubber: RandomEmailScrubberFn = (value, additionalPara
     ...additionalParams,
   }
   return customAlphabet(params.alphabet, params['length'])() + params.domain
+}
+
+export const randomEmailScrubberSQL: RandomEmailScrubberSQLFn = additionalParams => {
+  const params = {
+    alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE,
+    length: 16,
+    domain: '@example.com',
+    ...additionalParams,
+  }
+  // This doesn't respect the alphabet :(
+  return `RANDSTR(${params.length}, HASH(${sqlValueToReplace})) || '${params.domain}'`
 }
 
 /*
@@ -194,6 +305,8 @@ export interface RandomEmailInContentScrubberParams {
 }
 
 export type RandomEmailInContentScrubberFn = ScrubberFn<string, RandomEmailInContentScrubberParams>
+
+export type RandomEmailInContentScrubberSQLFn = ScrubberSQLFn<RandomEmailInContentScrubberParams>
 
 export const randomEmailInContentScrubber: RandomEmailInContentScrubberFn = (
   value,
@@ -214,6 +327,17 @@ export const randomEmailInContentScrubber: RandomEmailInContentScrubberFn = (
   return value
 }
 
+export const randomEmailInContentScrubberSQL: RandomEmailInContentScrubberSQLFn = (
+  fieldName,
+  additionalParams,
+) => {
+  return `REGEXP_REPLACE(
+    ${sqlValueToReplace},
+    '[a-zA-Z1-9\\._-]*@[a-zA-Z1-9\\._-]*\\.[a-zA-Z_-]{2,3}',
+    RANDSTR(${additionalParams.length}, HASH(${sqlValueToReplace})
+  ) || '${additionalParams.domain}'`
+}
+
 /*
   Salted hash scrubber.
 
@@ -225,12 +349,21 @@ export interface SaltedHashScrubberParams {
 
 export type SaltedHashScrubberFn = ScrubberFn<string, SaltedHashScrubberParams>
 
+export type SaltedHashScrubberSQLFn = ScrubberSQLFn<SaltedHashScrubberParams>
+
 export const saltedHashScrubber: SaltedHashScrubberFn = (value, params) => {
   if (!params?.initializationVector) {
     throw new Error('Initialization vector is missing')
   }
 
   return crypto.createHash('sha256').update(value).update(params.initializationVector).digest('hex')
+}
+
+export const saltedHashScrubberSQL: SaltedHashScrubberSQLFn = (fieldName, params) => {
+  if (!params?.initializationVector) {
+    throw new Error('Initialization vector is missing')
+  }
+  return `SHA2(${sqlValueToReplace} || '${params.initializationVector}', 256)`
 }
 
 /*
@@ -245,6 +378,8 @@ export interface SaltedHashEmailScrubberParams {
 
 export type SaltedHashEmailScrubberFn = ScrubberFn<string, SaltedHashEmailScrubberParams>
 
+export type SaltedHashEmailScrubberSQLFn = ScrubberSQLFn<SaltedHashEmailScrubberParams>
+
 export const saltedHashEmailScrubber: SaltedHashEmailScrubberFn = (value, additionalParams) => {
   const params = {
     domain: '@example.com',
@@ -258,12 +393,30 @@ export const saltedHashEmailScrubber: SaltedHashEmailScrubberFn = (value, additi
   return saltedHashScrubber(value, params) + params.domain
 }
 
+export const saltedHashEmailScrubberSQL: SaltedHashEmailScrubberSQLFn = (
+  fieldName,
+  additionalParams,
+) => {
+  const params = {
+    domain: '@example.com',
+    ...additionalParams,
+  } as SaltedHashEmailScrubberParams
+
+  if (!params?.initializationVector) {
+    throw new Error('Initialization vector is missing')
+  }
+
+  return `SHA2(${sqlValueToReplace} || '${params.initializationVector}', 256) || '${params.domain}'`
+}
+
 /*
  Bcrypt string scrubber. Scrubs both salt and hash while maintaining algo and cost factor, thus resulting in a valid,
  but nonsense bcrypt string
 
  */
 export type BcryptStringScrubberFn = ScrubberFn<string | undefined, BcryptStringScrubberParams>
+
+export type BcryptStringScrubberSQLFn = ScrubberFn<BcryptStringScrubberParams>
 
 /*
  replacements string is a comma seperated list of key-value pairs (seperated by :) that maps bcrypt string prefix
@@ -293,6 +446,26 @@ export const bcryptStringScrubber: BcryptStringScrubberFn = (value, params) => {
 
   return `${prefix}${customAlphabet(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)()}`
 }
+export const bcryptStringScrubberSQL: BcryptStringScrubberSQLFn = (fieldName, params) => {
+  let replacementDLL =
+    "WHEN TRUE THEN ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(value, '$'), 0, 3), '$') || '$' || RANDSTR(53, HASH(value))"
+  // unpack the replacements here rather than in SQL
+  if (params?.replacements) {
+    for (const kvPair of params.replacements.split(',')) {
+      const [k, v] = kvPair.split(':')
+      replacementDLL += `WHEN ${k} THEN ${v}\n                  `
+    }
+    replacementDLL += `ELSE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(value, '$'), 0, 3), '$') || '$' || RANDSTR(53, HASH(value))`
+  }
+
+  return `CASE WHEN ARRAY_SIZE(ARRAY_SLICE(SPLIT(value, '$'), 0, 3)) >= 3 -- If there are at least 3 $ in the string
+          THEN
+              CASE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(value, '$'), 0, 3), '$') || '$'
+                  ${replacementDLL}
+              END
+          ELSE '$2a$12$' || RANDSTR(53, HASH(value))
+          END`
+}
 
 function nthChar(str: string, character: string, n: number): number | undefined {
   let count = 0
@@ -321,4 +494,19 @@ export const defaultScrubbers: ScrubbersImpl = {
   saltedHashScrubber,
   saltedHashEmailScrubber,
   bcryptStringScrubber,
+}
+
+export const defaultScrubbersSQL: ScrubberSQLImpl = {
+  staticScrubber: staticScrubberSQL,
+  preserveOriginalScrubber: preserveOriginalScrubberSQL,
+  isoDateStringScrubber: isoDateStringScrubberSQL,
+  unixTimestampScrubber: unixTimestampScrubberSQL,
+  undefinedScrubber: undefinedScrubberSQL,
+  charsFromRightScrubber: charsFromRightScrubberSQL,
+  randomScrubber: randomScrubberSQL,
+  randomEmailScrubber: randomEmailScrubberSQL,
+  randomEmailInContentScrubber: randomEmailInContentScrubberSQL,
+  saltedHashScrubber: saltedHashScrubberSQL,
+  saltedHashEmailScrubber: saltedHashEmailScrubberSQL,
+  bcryptStringScrubber: bcryptStringScrubberSQL,
 }

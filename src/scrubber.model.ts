@@ -2,6 +2,8 @@ import { AnyObject, StringMap } from '@naturalcycles/js-lib'
 
 export type ScrubberFn<T = any, PARAMS = AnyObject> = (value: T, params?: PARAMS) => T
 
+export type ScrubberSQLFn<PARAMS = AnyObject> = (params?: PARAMS) => string | undefined
+
 export interface ScrubberConfig {
   fields: StringMap<ScrubberFieldConfig>
   /**
@@ -26,4 +28,8 @@ export interface ScrubberFieldConfig {
 
 export interface ScrubbersImpl {
   [scrubberName: string]: ScrubberFn<any, any>
+}
+
+export interface ScrubbersSQLImpl {
+  [scrubberName: string]: ScrubberSQLFn<any>
 }

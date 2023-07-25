@@ -1,10 +1,11 @@
 import { nanoid } from 'nanoid'
 import { _deepEquals, StringMap } from '@naturalcycles/js-lib'
-import { ScrubberConfig, ScrubbersImpl } from './scrubber.model'
-import { defaultScrubbers } from './scrubbers'
+import { ScrubberConfig, ScrubbersImpl, ScrubbersSQLImpl } from './scrubber.model'
+import { defaultScrubbers, defaultScrubbersSQL } from './scrubbers'
 
 export class Scrubber {
   private readonly scrubbers: ScrubbersImpl
+  private readonly scrubbersSQL: ScrubbersSQLImpl
   private readonly initializationVector: string
   private readonly rootType?: string
 
@@ -13,19 +14,22 @@ export class Scrubber {
    *
    * @param cfg
    * @param additionalScrubbersImpl optional additional scrubbers
-   * @param initialzationVector optional initialization vector used by some scrubbers.
+   * @param additionalScrubbersSQLImpl optional additional scrubbers SQL
+   * @param initializationVector optional initialization vector used by some scrubbers.
    * @param rootType optional root type. Assumes all objects passed to this scubber is of named type for the sake of parent matching.
    */
   constructor(
     private cfg: ScrubberConfig,
     additionalScrubbersImpl?: ScrubbersImpl,
-    initialzationVector?: string,
+    additionalScrubbersSQLImpl?: ScrubbersSQLImpl,
+    initializationVector?: string,
     rootType?: string,
   ) {
     const defaultCfg: Partial<ScrubberConfig> = { throwOnError: false, preserveFalsy: true }
 
-    this.initializationVector = initialzationVector || nanoid()
+    this.initializationVector = initializationVector || nanoid()
     this.scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
+    this.scrubbersSQL = { ...defaultScrubbersSQL, ...additionalScrubbersSQLImpl }
     this.cfg = { ...defaultCfg, ...this.expandCfg(cfg) }
     this.cfg.splitFields = this.splitFields(cfg)
     this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
@@ -36,9 +40,32 @@ export class Scrubber {
     rootType: string,
     cfg: ScrubberConfig,
     additionalScrubbersImpl?: ScrubbersImpl,
-    initialzationVector?: string,
+    additionalScrubbersSQLImpl?: ScrubbersSQLImpl,
+    initializationVector?: string,
   ): Scrubber {
-    return new Scrubber(cfg, additionalScrubbersImpl, initialzationVector, rootType)
+    return new Scrubber(
+      cfg,
+      additionalScrubbersImpl,
+      additionalScrubbersSQLImpl,
+      initializationVector,
+      rootType,
+    )
+  }
+
+  getScrubberSql(): string | undefined {
+    const scrubberCurrentField = this.cfg.fields[fieldName]
+    if (!scrubberCurrentField) return undefined
+
+    const params = {
+      initializationVector: this.initializationVector,
+      ...scrubberCurrentField.params,
+    }
+    const scrubberSQLFactory = this.scrubbersSQL[scrubberCurrentField.scrubber]
+    if (!scrubberSQLFactory) {
+      console.warn(`No SQL factory for ${scrubberCurrentField.scrubber}, used for ${fieldName}`)
+      return undefined
+    }
+    return scrubberSQLFactory(params)
   }
 
   scrub<T>(data: T): T {
