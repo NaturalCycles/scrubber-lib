@@ -1,18 +1,30 @@
 import { nanoid } from 'nanoid'
 import {
   bcryptStringScrubber,
+  bcryptStringScrubberSQL,
   BcryptStringScrubberParams,
   charsFromRightScrubber,
+  charsFromRightScrubberSQL,
   isoDateStringScrubber,
+  isoDateStringScrubberSQL,
   preserveOriginalScrubber,
+  preserveOriginalScrubberSQL,
   randomEmailInContentScrubber,
+  randomEmailInContentScrubberSQL,
   randomEmailScrubber,
+  randomEmailScrubberSQL,
   randomScrubber,
+  randomScrubberSQL,
   saltedHashEmailScrubber,
+  saltedHashEmailScrubberSQL,
   saltedHashScrubber,
+  saltedHashScrubberSQL,
   staticScrubber,
+  staticScrubberSQL,
   undefinedScrubber,
+  undefinedScrubberSQL,
   unixTimestampScrubber,
+  unixTimestampScrubberSQL,
 } from './scrubbers'
 
 const bryptStr1 = '$2a$12$HYNzBb8XYOZZeRwZDiVux.orKNqkSVAoXBDc9Gw7nSxr8rcZupbRK'
@@ -25,6 +37,11 @@ describe('undefinedScrubber', () => {
     expect(undefinedScrubber('foo')).toBeUndefined()
   })
 })
+describe('undefinedScrubberSQL', () => {
+  test('sql is correct', () => {
+    expect(undefinedScrubberSQL()).toMatchSnapshot()
+  })
+})
 
 describe('preserveOriginalScrubber', () => {
   test('preserves the original value', () => {
@@ -32,6 +49,12 @@ describe('preserveOriginalScrubber', () => {
     expect(preserveOriginalScrubber(1)).toBe(1)
     expect(preserveOriginalScrubber('foo')).toBe('foo')
     expect(preserveOriginalScrubber(null)).toBeNull()
+  })
+})
+
+describe('preserveOriginalScrubberSQL', () => {
+  test('sql is correct', () => {
+    expect(preserveOriginalScrubberSQL()).toMatchSnapshot()
   })
 })
 
@@ -56,6 +79,13 @@ describe('staticScrubber', () => {
     const r = 123
 
     expect(staticScrubber(secretNum, { replacement: r })).toEqual(r)
+  })
+})
+
+describe('staticScrubberSQL', () => {
+  test('sql is correct', () => {
+    expect(staticScrubberSQL({ replacement: 'hello world' })).toMatchSnapshot()
+    expect(staticScrubberSQL({ replacement: 12345 })).toMatchSnapshot()
   })
 })
 
@@ -104,6 +134,15 @@ describe('unixTimestampScrubber', () => {
   })
 })
 
+describe('unixTimestampScrubberSQL', () => {
+  test('sql is correct', () => {
+    expect(unixTimestampScrubberSQL({ excludeDay: true })).toMatchSnapshot()
+    expect(unixTimestampScrubberSQL({ excludeTime: true })).toMatchSnapshot()
+    expect(unixTimestampScrubberSQL({ excludeDay: true, excludeMonth: true })).toMatchSnapshot()
+    expect(unixTimestampScrubberSQL({ excludeYear: true })).toMatchSnapshot()
+  })
+})
+
 describe('isoDateStringScrubber', () => {
   test.each([
     [undefined, undefined],
@@ -139,6 +178,15 @@ describe('isoDateStringScrubber', () => {
   })
 })
 
+describe('isoDateStringScrubberSQL', () => {
+  test('sql is correct', () => {
+    expect(isoDateStringScrubberSQL({ excludeDay: true })).toMatchSnapshot()
+    expect(isoDateStringScrubberSQL({ excludeMonth: true })).toMatchSnapshot()
+    expect(isoDateStringScrubberSQL({ excludeDay: true, excludeMonth: true })).toMatchSnapshot()
+    expect(isoDateStringScrubberSQL({ excludeYear: true })).toMatchSnapshot()
+  })
+})
+
 describe('charsFromRightScrubber', () => {
   test.each([
     [undefined, undefined],
@@ -162,15 +210,25 @@ describe('charsFromRightScrubber', () => {
     const result = charsFromRightScrubber('123', { count: 5, replacement: 'X' })
     expect(result).toBe('XXX')
   })
+
+  test('charsFromRightScrubber - Full replacement', () => {
+    const result = charsFromRightScrubber('blabla_123', {
+      count: 3,
+      replacement: '456',
+      replaceFull: true,
+    })
+    expect(result).toBe('blabla_456')
+  })
 })
 
-test('charsFromRightScrubber - Full replacement', () => {
-  const result = charsFromRightScrubber('blabla_123', {
-    count: 3,
-    replacement: '456',
-    replaceFull: true,
+describe('charsFromRightScrubberSQL', () => {
+  test('sql is correct', () => {
+    expect(charsFromRightScrubberSQL({ count: 2, replacement: 'X' })).toMatchSnapshot()
+    expect(charsFromRightScrubberSQL({ count: 5, replacement: 'X' })).toMatchSnapshot()
+    expect(
+      charsFromRightScrubberSQL({ count: 2, replacement: 'X', replaceFull: true }),
+    ).toMatchSnapshot()
   })
-  expect(result).toBe('blabla_456')
 })
 
 describe('randomScrubber', () => {
@@ -190,6 +248,13 @@ describe('randomScrubber', () => {
   })
 })
 
+describe('randomScrubberSQL', () => {
+  test('sql is correct', () => {
+    expect(randomScrubberSQL()).toMatchSnapshot()
+    expect(randomScrubberSQL({ length: 5 })).toMatchSnapshot()
+  })
+})
+
 describe('randomEmailScrubber', () => {
   test('generates with default arguments', () => {
     const result = randomEmailScrubber('secret')
@@ -204,6 +269,14 @@ describe('randomEmailScrubber', () => {
       domain: '@customdomain.com',
     })
     expect(result).toBe('aaaaa@customdomain.com')
+  })
+})
+
+describe('randomEmailScrubberSQL', () => {
+  test('sql is correct', () => {
+    expect(randomEmailScrubberSQL()).toMatchSnapshot()
+    expect(randomEmailScrubberSQL({ length: 5 })).toMatchSnapshot()
+    expect(randomEmailScrubberSQL({ length: 5, domain: '@customdomain.com' })).toMatchSnapshot()
   })
 })
 
@@ -235,6 +308,16 @@ describe('randomEmailInContentScrubber', () => {
   })
 })
 
+describe('randomEmailInContentScrubberSQL', () => {
+  test('sql is correct', () => {
+    expect(randomEmailInContentScrubberSQL()).toMatchSnapshot()
+    expect(randomEmailInContentScrubberSQL({ length: 5 })).toMatchSnapshot()
+    expect(
+      randomEmailInContentScrubberSQL({ length: 5, domain: '@customdomain.com' }),
+    ).toMatchSnapshot()
+  })
+})
+
 describe('saltedHashScrubber', () => {
   test('generates hash using initializationVector', () => {
     const initializationVector = nanoid()
@@ -251,6 +334,13 @@ describe('saltedHashScrubber', () => {
   })
 })
 
+describe('saltedHashScrubberSQL', () => {
+  test('sql is correct', () => {
+    const initializationVector = 'thisIsAStaticVector'
+    expect(saltedHashScrubberSQL({ initializationVector })).toMatchSnapshot()
+  })
+})
+
 describe('saltedHashEmailScrubber', () => {
   test('generates hash using initializationVector and suffixes domain', () => {
     const initializationVector = 'staticvector'
@@ -262,6 +352,16 @@ describe('saltedHashEmailScrubber', () => {
     console.log(result)
     expect(result).not.toBe('secret')
     expect(result).toMatchSnapshot()
+  })
+})
+
+describe('saltedHashEmailScrubberSQL', () => {
+  test('sql is correct', () => {
+    const initializationVector = 'staticvector'
+    expect(saltedHashEmailScrubberSQL({ initializationVector })).toMatchSnapshot()
+    expect(
+      saltedHashEmailScrubberSQL({ initializationVector, domain: '@naturalcycles.com' }),
+    ).toMatchSnapshot()
   })
 })
 
@@ -299,5 +399,14 @@ describe('bcryptStringScrubber', () => {
 
     const result2 = bcryptStringScrubber(bryptStr2, params)
     expect(result2).toBe('$2a$10$456')
+  })
+})
+
+describe('bcryptStringScrubberSQL', () => {
+  test('sql is correct', () => {
+    expect(bcryptStringScrubberSQL()).toMatchSnapshot()
+    expect(
+      bcryptStringScrubberSQL({ replacements: '$2a$10$:$2a$10$456,$2a$12$:$2a$12$123' }),
+    ).toMatchSnapshot()
   })
 })
