@@ -37,10 +37,9 @@ describe('undefinedScrubber', () => {
     expect(undefinedScrubber('foo')).toBeUndefined()
   })
 })
-describe('undefinedScrubberSQL', () => {
-  test('sql is correct', () => {
-    expect(undefinedScrubberSQL()).toMatchSnapshot()
-  })
+
+test('undefinedScrubberSQL', () => {
+  expect(undefinedScrubberSQL()).toMatchInlineSnapshot(`"NULL"`)
 })
 
 describe('preserveOriginalScrubber', () => {
@@ -52,10 +51,8 @@ describe('preserveOriginalScrubber', () => {
   })
 })
 
-describe('preserveOriginalScrubberSQL', () => {
-  test('sql is correct', () => {
-    expect(preserveOriginalScrubberSQL()).toMatchSnapshot()
-  })
+test('preserveOriginalScrubberSQL', () => {
+  expect(preserveOriginalScrubberSQL()).toMatchInlineSnapshot(`"VAL"`)
 })
 
 describe('staticScrubber', () => {
@@ -82,11 +79,9 @@ describe('staticScrubber', () => {
   })
 })
 
-describe('staticScrubberSQL', () => {
-  test('sql is correct', () => {
-    expect(staticScrubberSQL({ replacement: 'hello world' })).toMatchSnapshot()
-    expect(staticScrubberSQL({ replacement: 12345 })).toMatchSnapshot()
-  })
+test('staticScrubberSQL', () => {
+  expect(staticScrubberSQL({ replacement: 'hello world' })).toMatchInlineSnapshot(`"'hello world'"`)
+  expect(staticScrubberSQL({ replacement: 12345 })).toMatchInlineSnapshot(`"12345"`)
 })
 
 describe('unixTimestampScrubber', () => {
@@ -134,13 +129,19 @@ describe('unixTimestampScrubber', () => {
   })
 })
 
-describe('unixTimestampScrubberSQL', () => {
-  test('sql is correct', () => {
-    expect(unixTimestampScrubberSQL({ excludeDay: true })).toMatchSnapshot()
-    expect(unixTimestampScrubberSQL({ excludeTime: true })).toMatchSnapshot()
-    expect(unixTimestampScrubberSQL({ excludeDay: true, excludeMonth: true })).toMatchSnapshot()
-    expect(unixTimestampScrubberSQL({ excludeYear: true })).toMatchSnapshot()
-  })
+test('unixTimestampScrubberSQL', () => {
+  expect(unixTimestampScrubberSQL({ excludeDay: true })).toMatchInlineSnapshot(
+    `"TIMESTAMP_NTZ_FROM_PARTS(DATE_PART('YEAR', VAL), DATE_PART('MONTH', VAL), 1, DATE_PART('HOUR', VAL), DATE_PART('MINUTE', VAL), DATE_PART('SECOND', VAL))"`,
+  )
+  expect(unixTimestampScrubberSQL({ excludeTime: true })).toMatchInlineSnapshot(
+    `"TIMESTAMP_NTZ_FROM_PARTS(DATE_PART('YEAR', VAL), DATE_PART('MONTH', VAL), DATE_PART('DAY', VAL), 0, 0, 0)"`,
+  )
+  expect(unixTimestampScrubberSQL({ excludeDay: true, excludeMonth: true })).toMatchInlineSnapshot(
+    `"TIMESTAMP_NTZ_FROM_PARTS(DATE_PART('YEAR', VAL), 1, 1, DATE_PART('HOUR', VAL), DATE_PART('MINUTE', VAL), DATE_PART('SECOND', VAL))"`,
+  )
+  expect(unixTimestampScrubberSQL({ excludeYear: true })).toMatchInlineSnapshot(
+    `"TIMESTAMP_NTZ_FROM_PARTS(1970, DATE_PART('MONTH', VAL), DATE_PART('DAY', VAL), DATE_PART('HOUR', VAL), DATE_PART('MINUTE', VAL), DATE_PART('SECOND', VAL))"`,
+  )
 })
 
 describe('isoDateStringScrubber', () => {
@@ -178,13 +179,19 @@ describe('isoDateStringScrubber', () => {
   })
 })
 
-describe('isoDateStringScrubberSQL', () => {
-  test('sql is correct', () => {
-    expect(isoDateStringScrubberSQL({ excludeDay: true })).toMatchSnapshot()
-    expect(isoDateStringScrubberSQL({ excludeMonth: true })).toMatchSnapshot()
-    expect(isoDateStringScrubberSQL({ excludeDay: true, excludeMonth: true })).toMatchSnapshot()
-    expect(isoDateStringScrubberSQL({ excludeYear: true })).toMatchSnapshot()
-  })
+test('isoDateStringScrubberSQL', () => {
+  expect(isoDateStringScrubberSQL({ excludeDay: true })).toMatchInlineSnapshot(
+    `"SUBSTR(VAL, 0, 8) || '01'"`,
+  )
+  expect(isoDateStringScrubberSQL({ excludeMonth: true })).toMatchInlineSnapshot(
+    `"SUBSTR(VAL, 0, 5) || '01' || SUBSTR(VAL, 8, 10)"`,
+  )
+  expect(isoDateStringScrubberSQL({ excludeDay: true, excludeMonth: true })).toMatchInlineSnapshot(
+    `"SUBSTR(SUBSTR(VAL, 0, 8) || '01', 0, 5) || '01' || SUBSTR(SUBSTR(VAL, 0, 8) || '01', 8, 10)"`,
+  )
+  expect(isoDateStringScrubberSQL({ excludeYear: true })).toMatchInlineSnapshot(
+    `"'1970' || SUBSTR(VAL, 5, 10)"`,
+  )
 })
 
 describe('charsFromRightScrubber', () => {
@@ -221,14 +228,16 @@ describe('charsFromRightScrubber', () => {
   })
 })
 
-describe('charsFromRightScrubberSQL', () => {
-  test('sql is correct', () => {
-    expect(charsFromRightScrubberSQL({ count: 2, replacement: 'X' })).toMatchSnapshot()
-    expect(charsFromRightScrubberSQL({ count: 5, replacement: 'X' })).toMatchSnapshot()
-    expect(
-      charsFromRightScrubberSQL({ count: 2, replacement: 'X', replaceFull: true }),
-    ).toMatchSnapshot()
-  })
+test('charsFromRightScrubberSQL', () => {
+  expect(charsFromRightScrubberSQL({ count: 2, replacement: 'X' })).toMatchInlineSnapshot(
+    `"SUBSTR(VAL, 0, LEN(VAL) - 2) || REPEAT('X', LEAST(2, LEN(VAL)))"`,
+  )
+  expect(charsFromRightScrubberSQL({ count: 5, replacement: 'X' })).toMatchInlineSnapshot(
+    `"SUBSTR(VAL, 0, LEN(VAL) - 5) || REPEAT('X', LEAST(5, LEN(VAL)))"`,
+  )
+  expect(
+    charsFromRightScrubberSQL({ count: 2, replacement: 'X', replaceFull: true }),
+  ).toMatchInlineSnapshot(`"SUBSTR(VAL, 0, LEN(VAL) - 2) || 'X'"`)
 })
 
 describe('randomScrubber', () => {
@@ -248,11 +257,9 @@ describe('randomScrubber', () => {
   })
 })
 
-describe('randomScrubberSQL', () => {
-  test('sql is correct', () => {
-    expect(randomScrubberSQL()).toMatchSnapshot()
-    expect(randomScrubberSQL({ length: 5 })).toMatchSnapshot()
-  })
+test('randomScrubberSQL', () => {
+  expect(randomScrubberSQL()).toMatchInlineSnapshot(`"RANDSTR(16, HASH(VAL))"`)
+  expect(randomScrubberSQL({ length: 5 })).toMatchInlineSnapshot(`"RANDSTR(5, HASH(VAL))"`)
 })
 
 describe('randomEmailScrubber', () => {
@@ -272,12 +279,16 @@ describe('randomEmailScrubber', () => {
   })
 })
 
-describe('randomEmailScrubberSQL', () => {
-  test('sql is correct', () => {
-    expect(randomEmailScrubberSQL()).toMatchSnapshot()
-    expect(randomEmailScrubberSQL({ length: 5 })).toMatchSnapshot()
-    expect(randomEmailScrubberSQL({ length: 5, domain: '@customdomain.com' })).toMatchSnapshot()
-  })
+test('randomEmailScrubberSQL', () => {
+  expect(randomEmailScrubberSQL()).toMatchInlineSnapshot(
+    `"RANDSTR(16, HASH(VAL)) || '@example.com'"`,
+  )
+  expect(randomEmailScrubberSQL({ length: 5 })).toMatchInlineSnapshot(
+    `"RANDSTR(5, HASH(VAL)) || '@example.com'"`,
+  )
+  expect(randomEmailScrubberSQL({ length: 5, domain: '@customdomain.com' })).toMatchInlineSnapshot(
+    `"RANDSTR(5, HASH(VAL)) || '@customdomain.com'"`,
+  )
 })
 
 describe('randomEmailInContentScrubber', () => {
@@ -308,14 +319,29 @@ describe('randomEmailInContentScrubber', () => {
   })
 })
 
-describe('randomEmailInContentScrubberSQL', () => {
-  test('sql is correct', () => {
-    expect(randomEmailInContentScrubberSQL()).toMatchSnapshot()
-    expect(randomEmailInContentScrubberSQL({ length: 5 })).toMatchSnapshot()
-    expect(
-      randomEmailInContentScrubberSQL({ length: 5, domain: '@customdomain.com' }),
-    ).toMatchSnapshot()
-  })
+test('randomEmailInContentScrubberSQL', () => {
+  expect(randomEmailInContentScrubberSQL()).toMatchInlineSnapshot(`
+    "REGEXP_REPLACE(
+        VAL,
+        '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
+        RANDSTR(16, HASH(VAL))
+      ) || '@example.com'"
+  `)
+  expect(randomEmailInContentScrubberSQL({ length: 5 })).toMatchInlineSnapshot(`
+    "REGEXP_REPLACE(
+        VAL,
+        '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
+        RANDSTR(5, HASH(VAL))
+      ) || '@example.com'"
+  `)
+  expect(randomEmailInContentScrubberSQL({ length: 5, domain: '@customdomain.com' }))
+    .toMatchInlineSnapshot(`
+      "REGEXP_REPLACE(
+          VAL,
+          '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
+          RANDSTR(5, HASH(VAL))
+        ) || '@customdomain.com'"
+    `)
 })
 
 describe('saltedHashScrubber', () => {
@@ -334,11 +360,11 @@ describe('saltedHashScrubber', () => {
   })
 })
 
-describe('saltedHashScrubberSQL', () => {
-  test('sql is correct', () => {
-    const initializationVector = 'thisIsAStaticVector'
-    expect(saltedHashScrubberSQL({ initializationVector })).toMatchSnapshot()
-  })
+test('saltedHashScrubberSQL', () => {
+  const initializationVector = 'thisIsAStaticVector'
+  expect(saltedHashScrubberSQL({ initializationVector })).toMatchInlineSnapshot(
+    `"SHA2(VAL || 'thisIsAStaticVector', 256)"`,
+  )
 })
 
 describe('saltedHashEmailScrubber', () => {
@@ -355,14 +381,14 @@ describe('saltedHashEmailScrubber', () => {
   })
 })
 
-describe('saltedHashEmailScrubberSQL', () => {
-  test('sql is correct', () => {
-    const initializationVector = 'staticvector'
-    expect(saltedHashEmailScrubberSQL({ initializationVector })).toMatchSnapshot()
-    expect(
-      saltedHashEmailScrubberSQL({ initializationVector, domain: '@naturalcycles.com' }),
-    ).toMatchSnapshot()
-  })
+test('saltedHashEmailScrubberSQL', () => {
+  const initializationVector = 'staticvector'
+  expect(saltedHashEmailScrubberSQL({ initializationVector })).toMatchInlineSnapshot(
+    `"SHA2(VAL || 'staticvector', 256) || '@example.com'"`,
+  )
+  expect(
+    saltedHashEmailScrubberSQL({ initializationVector, domain: '@naturalcycles.com' }),
+  ).toMatchInlineSnapshot(`"SHA2(VAL || 'staticvector', 256) || '@naturalcycles.com'"`)
 })
 
 describe('bcryptStringScrubber', () => {
@@ -402,11 +428,9 @@ describe('bcryptStringScrubber', () => {
   })
 })
 
-describe('bcryptStringScrubberSQL', () => {
-  test('sql is correct', () => {
-    expect(bcryptStringScrubberSQL()).toMatchSnapshot()
-    expect(
-      bcryptStringScrubberSQL({ replacements: '$2a$10$:$2a$10$456,$2a$12$:$2a$12$123' }),
-    ).toMatchSnapshot()
-  })
+test('bcryptStringScrubberSQL', () => {
+  expect(bcryptStringScrubberSQL()).toMatchSnapshot()
+  expect(
+    bcryptStringScrubberSQL({ replacements: '$2a$10$:$2a$10$456,$2a$12$:$2a$12$123' }),
+  ).toMatchSnapshot()
 })

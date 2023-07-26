@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`bcryptStringScrubberSQL sql is correct 1`] = `
+exports[`bcryptStringScrubberSQL 1`] = `
 "CASE WHEN ARRAY_SIZE(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3)) >= 3 -- If there are at least 3 $ in the string
           THEN
               CASE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3), '$') || '$' -- this is the prefix
@@ -11,7 +11,7 @@ exports[`bcryptStringScrubberSQL sql is correct 1`] = `
           END"
 `;
 
-exports[`bcryptStringScrubberSQL sql is correct 2`] = `
+exports[`bcryptStringScrubberSQL 2`] = `
 "CASE WHEN ARRAY_SIZE(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3)) >= 3 -- If there are at least 3 $ in the string
           THEN
               CASE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3), '$') || '$' -- this is the prefix
@@ -24,74 +24,4 @@ exports[`bcryptStringScrubberSQL sql is correct 2`] = `
           END"
 `;
 
-exports[`charsFromRightScrubberSQL sql is correct 1`] = `"SUBSTR(VAL, 0, LEN(VAL) - 2) || REPEAT('X', LEAST(2, LEN(VAL)))"`;
-
-exports[`charsFromRightScrubberSQL sql is correct 2`] = `"SUBSTR(VAL, 0, LEN(VAL) - 5) || REPEAT('X', LEAST(5, LEN(VAL)))"`;
-
-exports[`charsFromRightScrubberSQL sql is correct 3`] = `"SUBSTR(VAL, 0, LEN(VAL) - 2) || 'X'"`;
-
-exports[`isoDateStringScrubberSQL sql is correct 1`] = `"SUBSTR(VAL, 0, 8) || '01'"`;
-
-exports[`isoDateStringScrubberSQL sql is correct 2`] = `"SUBSTR(VAL, 0, 5) || '01' || SUBSTR(VAL, 8, 10)"`;
-
-exports[`isoDateStringScrubberSQL sql is correct 3`] = `"SUBSTR(SUBSTR(VAL, 0, 8) || '01', 0, 5) || '01' || SUBSTR(SUBSTR(VAL, 0, 8) || '01', 8, 10)"`;
-
-exports[`isoDateStringScrubberSQL sql is correct 4`] = `"'1970' || SUBSTR(VAL, 5, 10)"`;
-
-exports[`preserveOriginalScrubberSQL sql is correct 1`] = `"VAL"`;
-
-exports[`randomEmailInContentScrubberSQL sql is correct 1`] = `
-"REGEXP_REPLACE(
-    VAL,
-    '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
-    RANDSTR(16, HASH(VAL))
-  ) || '@example.com'"
-`;
-
-exports[`randomEmailInContentScrubberSQL sql is correct 2`] = `
-"REGEXP_REPLACE(
-    VAL,
-    '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
-    RANDSTR(5, HASH(VAL))
-  ) || '@example.com'"
-`;
-
-exports[`randomEmailInContentScrubberSQL sql is correct 3`] = `
-"REGEXP_REPLACE(
-    VAL,
-    '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
-    RANDSTR(5, HASH(VAL))
-  ) || '@customdomain.com'"
-`;
-
-exports[`randomEmailScrubberSQL sql is correct 1`] = `"RANDSTR(16, HASH(VAL)) || '@example.com'"`;
-
-exports[`randomEmailScrubberSQL sql is correct 2`] = `"RANDSTR(5, HASH(VAL)) || '@example.com'"`;
-
-exports[`randomEmailScrubberSQL sql is correct 3`] = `"RANDSTR(5, HASH(VAL)) || '@customdomain.com'"`;
-
-exports[`randomScrubberSQL sql is correct 1`] = `"RANDSTR(16, HASH(VAL))"`;
-
-exports[`randomScrubberSQL sql is correct 2`] = `"RANDSTR(5, HASH(VAL))"`;
-
 exports[`saltedHashEmailScrubber generates hash using initializationVector and suffixes domain 1`] = `"7ecc1443f9a0c0c795069118020ac1f11dcba568bc9dfaf01433fff8b6b42de2@naturalcycles.com"`;
-
-exports[`saltedHashEmailScrubberSQL sql is correct 1`] = `"SHA2(VAL || 'staticvector', 256) || '@example.com'"`;
-
-exports[`saltedHashEmailScrubberSQL sql is correct 2`] = `"SHA2(VAL || 'staticvector', 256) || '@naturalcycles.com'"`;
-
-exports[`saltedHashScrubberSQL sql is correct 1`] = `"SHA2(VAL || 'thisIsAStaticVector', 256)"`;
-
-exports[`staticScrubberSQL sql is correct 1`] = `"'hello world'"`;
-
-exports[`staticScrubberSQL sql is correct 2`] = `"12345"`;
-
-exports[`undefinedScrubberSQL sql is correct 1`] = `"NULL"`;
-
-exports[`unixTimestampScrubberSQL sql is correct 1`] = `"TIMESTAMP_NTZ_FROM_PARTS(DATE_PART('YEAR', VAL), DATE_PART('MONTH', VAL), 1, DATE_PART('HOUR', VAL), DATE_PART('MINUTE', VAL), DATE_PART('SECOND', VAL))"`;
-
-exports[`unixTimestampScrubberSQL sql is correct 2`] = `"TIMESTAMP_NTZ_FROM_PARTS(DATE_PART('YEAR', VAL), DATE_PART('MONTH', VAL), DATE_PART('DAY', VAL), 0, 0, 0)"`;
-
-exports[`unixTimestampScrubberSQL sql is correct 3`] = `"TIMESTAMP_NTZ_FROM_PARTS(DATE_PART('YEAR', VAL), 1, 1, DATE_PART('HOUR', VAL), DATE_PART('MINUTE', VAL), DATE_PART('SECOND', VAL))"`;
-
-exports[`unixTimestampScrubberSQL sql is correct 4`] = `"TIMESTAMP_NTZ_FROM_PARTS(1970, DATE_PART('MONTH', VAL), DATE_PART('DAY', VAL), DATE_PART('HOUR', VAL), DATE_PART('MINUTE', VAL), DATE_PART('SECOND', VAL))"`;
