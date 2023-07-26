@@ -100,10 +100,10 @@ export const isoDateStringScrubberSQL: ISODateStringScrubberSQLFn = (params = {}
     replacement = `SUBSTR(${replacement}, 0, 8) || '01'`
   }
   if (params.excludeMonth) {
-    replacement = `SUBSTR(${replacement}, 0, 5) || '01' || SUBSTR(${replacement}, 7, 3)`
+    replacement = `SUBSTR(${replacement}, 0, 5) || '01' || SUBSTR(${replacement}, 8, 10)`
   }
   if (params.excludeYear) {
-    replacement = `'1970' || SUBSTR(${replacement}, 4, 9)`
+    replacement = `'1970' || SUBSTR(${replacement}, 5, 10)`
   }
 
   return replacement // "SUBSTR(VAL, 0, 8) || '01'"
@@ -223,7 +223,7 @@ export const charsFromRightScrubberSQL: CharsFromRightScrubberSQLFn = (
     return `SUBSTR(${sqlValueToReplace}, 0, LEN(${sqlValueToReplace}) - ${count}) || '${replacement}'`
   }
   // replace each chars from the right by $replacement until $count chars are replaced
-  return `SUBSTR(${sqlValueToReplace}, 0, LEN(${sqlValueToReplace}) - ${count}) || REPEAT('${replacement}', MIN(${count}, LEN(${sqlValueToReplace})))`
+  return `SUBSTR(${sqlValueToReplace}, 0, LEN(${sqlValueToReplace}) - ${count}) || REPEAT('${replacement}', LEAST(${count}, LEN(${sqlValueToReplace})))`
 }
 
 /*
@@ -336,7 +336,7 @@ export const randomEmailInContentScrubberSQL: RandomEmailInContentScrubberSQLFn 
     return `REGEXP_REPLACE(
     ${sqlValueToReplace},
     '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
-    RANDSTR(${length}, HASH(${sqlValueToReplace})
+    RANDSTR(${length}, HASH(${sqlValueToReplace}))
   ) || '${domain}'`
   }
 
@@ -438,23 +438,23 @@ export const bcryptStringScrubber: BcryptStringScrubberFn = (value, params) => {
   return `${prefix}${customAlphabet(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)()}`
 }
 export const bcryptStringScrubberSQL: BcryptStringScrubberSQLFn = params => {
-  let replacementDLL =
-    "WHEN TRUE THEN ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(value, '$'), 0, 3), '$') || '$' || RANDSTR(53, HASH(value))"
+  // to have at least one WHEN clause, so the ELSE clause is valid
+  let replacementDLL = "WHEN FALSE THEN ''\n                  "
   // unpack the replacements here rather than in SQL
   if (params?.replacements) {
     for (const kvPair of params.replacements.split(',')) {
       const [k, v] = kvPair.split(':')
-      replacementDLL += `WHEN ${k} THEN ${v}\n                  `
+      replacementDLL += `WHEN '${k}' THEN '${v}'\n                  `
     }
-    replacementDLL += `ELSE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(value, '$'), 0, 3), '$') || '$' || RANDSTR(53, HASH(value))`
   }
+  replacementDLL += `ELSE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(${sqlValueToReplace}, '$'), 0, 3), '$') || '$' || RANDSTR(53, HASH(${sqlValueToReplace}))`
 
-  return `CASE WHEN ARRAY_SIZE(ARRAY_SLICE(SPLIT(value, '$'), 0, 3)) >= 3 -- If there are at least 3 $ in the string
+  return `CASE WHEN ARRAY_SIZE(ARRAY_SLICE(SPLIT(${sqlValueToReplace}, '$'), 0, 3)) >= 3 -- If there are at least 3 $ in the string
           THEN
-              CASE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(value, '$'), 0, 3), '$') || '$'
+              CASE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(${sqlValueToReplace}, '$'), 0, 3), '$') || '$' -- this is the prefix
                   ${replacementDLL}
               END
-          ELSE '$2a$12$' || RANDSTR(53, HASH(value))
+          ELSE '$2a$12$' || RANDSTR(53, HASH(${sqlValueToReplace}))
           END`
 }
 
