@@ -5,21 +5,6 @@ exports[`error handling logs errors by default 1`] = `
   "calls": [
     [
       "Error when applying scrubber 'faultyScrubber' to field 'target'",
-    ],
-  ],
-  "results": [
-    {
-      "type": "return",
-      "value": undefined,
-    },
-  ],
-}
-`;
-
-exports[`error handling logs errors by default 2`] = `
-[MockFunction] {
-  "calls": [
-    [
       [Error: ops],
     ],
   ],

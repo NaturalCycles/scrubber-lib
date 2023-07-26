@@ -1,10 +1,13 @@
 import { nanoid } from 'nanoid'
-import { _deepEquals, StringMap } from '@naturalcycles/js-lib'
-import { ScrubberConfig, ScrubbersImpl } from './scrubber.model'
-import { defaultScrubbers } from './scrubbers'
+import { _assert, _deepEquals, StringMap } from '@naturalcycles/js-lib'
+import { ScrubberConfig, ScrubbersMap, ScrubbersSQLMap } from './scrubber.model'
+import { defaultScrubbers, defaultScrubbersSQL } from './scrubbers'
+
+const defaultCfg: Partial<ScrubberConfig> = { throwOnError: false, preserveFalsy: true }
 
 export class Scrubber {
-  private readonly scrubbers: ScrubbersImpl
+  private readonly scrubbersMap: ScrubbersMap
+  private readonly scrubbersSQLMap: ScrubbersSQLMap
   private readonly initializationVector: string
   private readonly rootType?: string
 
@@ -12,33 +15,57 @@ export class Scrubber {
    * Create new scrubber instance
    *
    * @param cfg
-   * @param additionalScrubbersImpl optional additional scrubbers
-   * @param initialzationVector optional initialization vector used by some scrubbers.
+   * @param additionalScrubbersMap optional additional scrubbers
+   * @param additionalScrubbersSQLMap optional additional scrubbers SQL
+   * @param initializationVector optional initialization vector used by some scrubbers.
    * @param rootType optional root type. Assumes all objects passed to this scubber is of named type for the sake of parent matching.
    */
   constructor(
     private cfg: ScrubberConfig,
-    additionalScrubbersImpl?: ScrubbersImpl,
-    initialzationVector?: string,
+    additionalScrubbersMap?: ScrubbersMap,
+    additionalScrubbersSQLMap?: ScrubbersSQLMap,
+    initializationVector?: string,
     rootType?: string,
   ) {
-    const defaultCfg: Partial<ScrubberConfig> = { throwOnError: false, preserveFalsy: true }
-
-    this.initializationVector = initialzationVector || nanoid()
-    this.scrubbers = { ...defaultScrubbers, ...additionalScrubbersImpl }
+    this.initializationVector = initializationVector || nanoid()
+    this.scrubbersMap = { ...defaultScrubbers, ...additionalScrubbersMap }
+    this.scrubbersSQLMap = { ...defaultScrubbersSQL, ...additionalScrubbersSQLMap }
     this.cfg = { ...defaultCfg, ...this.expandCfg(cfg) }
     this.cfg.splitFields = this.splitFields(cfg)
-    this.checkIfScrubbersExistAndRaise(cfg, this.scrubbers)
+    this.checkIfScrubbersExistAndRaise(cfg, this.scrubbersMap)
     this.rootType = rootType
   }
 
   static getScrubberForType(
     rootType: string,
     cfg: ScrubberConfig,
-    additionalScrubbersImpl?: ScrubbersImpl,
-    initialzationVector?: string,
+    additionalScrubbersImpl?: ScrubbersMap,
+    additionalScrubbersSQLImpl?: ScrubbersSQLMap,
+    initializationVector?: string,
   ): Scrubber {
-    return new Scrubber(cfg, additionalScrubbersImpl, initialzationVector, rootType)
+    return new Scrubber(
+      cfg,
+      additionalScrubbersImpl,
+      additionalScrubbersSQLImpl,
+      initializationVector,
+      rootType,
+    )
+  }
+
+  /**
+   * Returns undefined if there's no scrubber defined for the field.
+   */
+  getScrubberSql(fieldName: string): string | undefined {
+    const scrubberCurrentField = this.cfg.fields[fieldName]
+    if (!scrubberCurrentField) return undefined
+
+    const scrubber = this.scrubbersSQLMap[scrubberCurrentField.scrubber]
+    _assert(scrubber, `No SQL factory for ${scrubberCurrentField.scrubber}, used for ${fieldName}`)
+
+    return scrubber({
+      initializationVector: this.initializationVector,
+      ...scrubberCurrentField.params,
+    })
   }
 
   scrub<T>(data: T): T {
@@ -82,24 +109,25 @@ export class Scrubber {
         return
       }
 
-      const scrubber = this.scrubbers[scrubberCurrentField.scrubber]!
+      const scrubber = this.scrubbersMap[scrubberCurrentField.scrubber]!
       const params = {
         initializationVector: this.initializationVector,
         ...scrubberCurrentField.params,
       }
 
-      // Always log on errors, re-throw if enabled on config
       try {
         if (!this.cfg.preserveFalsy || dataCopy[key]) {
           dataCopy[key] = scrubber(dataCopy[key], params)
         }
       } catch (err) {
-        console.log(
-          `Error when applying scrubber '${scrubberCurrentField.scrubber}' to field '${key}'`,
-        )
-        console.error(err)
-
-        if (this.cfg.throwOnError) throw err
+        if (this.cfg.throwOnError) {
+          throw err
+        } else {
+          console.log(
+            `Error when applying scrubber '${scrubberCurrentField.scrubber}' to field '${key}'`,
+            err,
+          )
+        }
       }
     })
 
@@ -142,16 +170,14 @@ export class Scrubber {
     return newCfg
   }
 
-  private checkIfScrubbersExistAndRaise(cfg: ScrubberConfig, scrubbers: ScrubbersImpl): void {
-    if (!cfg.fields) throw new Error("Missing the 'fields' key on ScrubberConfig")
+  private checkIfScrubbersExistAndRaise(cfg: ScrubberConfig, scrubbers: ScrubbersMap): void {
+    _assert(cfg.fields, "Missing the 'fields' key on ScrubberConfig")
 
     const scrubbersOnConfig = Object.keys(cfg.fields).map(field => cfg.fields[field]!.scrubber)
     const scrubbersAvailable = Object.keys(scrubbers)
 
     scrubbersOnConfig.forEach(scrubber => {
-      if (!scrubbersAvailable.includes(scrubber)) {
-        throw new Error(`${scrubber} not found`)
-      }
+      _assert(scrubbersAvailable.includes(scrubber), `${scrubber} not found`)
     })
   }
 

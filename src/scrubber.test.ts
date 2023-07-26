@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid'
 import { deepFreeze } from '@naturalcycles/dev-lib/dist/testing'
 import { Scrubber } from './scrubber'
-import { ScrubberConfig, ScrubberFn, ScrubbersImpl } from './scrubber.model'
+import { ScrubberConfig, ScrubberFn, ScrubbersMap } from './scrubber.model'
 import { saltedHashEmailScrubber, saltedHashScrubber } from './scrubbers'
 import {
   configEmailScrubberMock,
@@ -12,27 +12,24 @@ import {
 } from './test/scrubber.mock'
 
 // Convenient method for initializing object and scrubbing
-const scrub = <T>(
+function scrub<T>(
   data: T,
   cfg: ScrubberConfig = configStaticScrubbersMock(),
-  additionalScrubbersImpl?: ScrubbersImpl,
-): T => {
+  additionalScrubbersImpl?: ScrubbersMap,
+): T {
   const scrubber = new Scrubber(cfg, additionalScrubbersImpl)
   return scrubber.scrub(data)
 }
 
 test('returns a single object when input is a single object', () => {
   const data = { pw: 'secret', name: 'Real Name' }
-  const scrubber = new Scrubber(configStaticScrubbersMock())
-  const result = scrubber.scrub(data)
-
+  const result = scrub(data)
   expect(result).toEqual({ pw: 'notsecret', name: 'Jane Doe' })
 })
 
 test('returns an array with one object when input is an array with one object', () => {
   const data = { pw: 'secret', name: 'Real Name' }
-  const scrubber = new Scrubber(configStaticScrubbersMock())
-  const result = scrubber.scrub([data])
+  const result = scrub([data])
 
   expect(result).toEqual([{ pw: 'notsecret', name: 'Jane Doe' }])
 })
@@ -40,8 +37,7 @@ test('returns an array with one object when input is an array with one object', 
 test('applies to more than a field', () => {
   const data = [{ pw: 'secret', name: 'Real Name' }]
   deepFreeze(data) // Ensure data doesnt mutate
-
-  const result = scrub(data, configStaticScrubbersMock())
+  const result = scrub(data)
   expect(result).toEqual([{ pw: 'notsecret', name: 'Jane Doe' }])
 })
 
@@ -49,7 +45,7 @@ test('applies to nested fields (deep transverse, 2 levels)', () => {
   const data = [{ account: { pw: 'secret', name: 'Real Name' } }]
   deepFreeze(data) // Ensure data doesnt mutate
 
-  const result = scrub(data, configStaticScrubbersMock())
+  const result = scrub(data)
   expect(result).toEqual([{ account: { pw: 'notsecret', name: 'Jane Doe' } }])
 })
 
@@ -57,7 +53,7 @@ test('applies to nested fields (deep transverse, 3 levels)', () => {
   const data = [{ object: { account: { pw: 'secret', name: 'Real Name' } } }]
   deepFreeze(data) // Ensure data doesnt mutate
 
-  const result = scrub(data, configStaticScrubbersMock())
+  const result = scrub(data)
   expect(result).toEqual([{ object: { account: { pw: 'notsecret', name: 'Jane Doe' } } }])
 })
 
@@ -67,7 +63,7 @@ test('applies to nested arrays', () => {
   const users = [{ users: [obj1, obj2] }]
   deepFreeze(users)
 
-  const result = scrub(users, configStaticScrubbersMock())
+  const result = scrub(users)
   expect(result[0]!['users'][0]).toEqual({ pw: 'notsecret', safe: 'shouldStay' })
   expect(result[0]!['users'][1]).toEqual({ name: 'Jane Doe', safe2: 'isSafe' })
   expect(Array.isArray(result[0]!['users'])).toBeTruthy() // makes sure we don't convert array to objects
@@ -83,7 +79,7 @@ test('keeps not modified fields', () => {
 
 test('supports additional scrubbers', () => {
   const mockScrubber: ScrubberFn = () => 'modified'
-  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+  const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
     fields: {
@@ -109,14 +105,14 @@ test('supports comma-separated fields in field name', () => {
 })
 
 test('returns empty array for empty arrays', () => {
-  const result = scrub([], configStaticScrubbersMock())
+  const result = scrub([])
   expect(result).toEqual([])
 })
 
 test('fails when scrubber from config is not found (even if not used)', () => {
   expect(() => {
     scrub([], configInvalidScrubberMock())
-  }).toThrow()
+  }).toThrowErrorMatchingInlineSnapshot(`"nonExistingScrubber not found"`)
 })
 
 describe('falsy values handling', () => {
@@ -176,7 +172,6 @@ describe('error handling', () => {
     scrubber.scrub(object)
 
     expect(console.log).toMatchSnapshot()
-    expect(console.error).toMatchSnapshot()
   })
 
   test('re-throw error if enabled on config', () => {
@@ -186,7 +181,7 @@ describe('error handling', () => {
 
     expect(() => {
       scrubber.scrub(object)
-    }).toThrow()
+    }).toThrowErrorMatchingInlineSnapshot(`"ops"`)
   })
 })
 
@@ -210,7 +205,7 @@ test('scrubs different types of data', () => {
 
 test('initializationVector is passed as param to scrubbers', () => {
   const mockScrubber = jest.fn(() => 'modified') as any
-  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+  const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
     fields: {
@@ -239,7 +234,7 @@ test('initializationVector is passed as param to scrubbers', () => {
 
 test('Ensure initializationVector is random and affects saltedHashScrubber', () => {
   const mockScrubber = jest.fn(saltedHashScrubber) as any
-  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+  const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
     fields: {
@@ -271,7 +266,7 @@ test('Ensure initializationVector is random and affects saltedHashScrubber', () 
 
 test('initializationVector passed to scrubber constructor is passed to scrubbers', () => {
   const mockScrubber = jest.fn(saltedHashScrubber) as any
-  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+  const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
     fields: {
@@ -284,7 +279,7 @@ test('initializationVector passed to scrubber constructor is passed to scrubbers
   const toBeSalted = 'id1'
   const data = [{ id: toBeSalted }]
   const initializationVector = nanoid()
-  const scrubber1 = new Scrubber(cfg, additionalScrubbers, initializationVector)
+  const scrubber1 = new Scrubber(cfg, additionalScrubbers, undefined, initializationVector)
   scrubber1.scrub(data)
   expect(mockScrubber).toHaveBeenCalledWith(toBeSalted, {
     initializationVector: expect.stringMatching(initializationVector),
@@ -292,7 +287,7 @@ test('initializationVector passed to scrubber constructor is passed to scrubbers
   const vector1 = mockScrubber.mock.calls[0][1]
   const result1 = mockScrubber.mock.results[0].value
 
-  const scrubber2 = new Scrubber(cfg, additionalScrubbers, initializationVector)
+  const scrubber2 = new Scrubber(cfg, additionalScrubbers, undefined, initializationVector)
   scrubber2.scrub(data)
   const vector2 = mockScrubber.mock.calls[1][1]
   const result2 = mockScrubber.mock.results[1].value
@@ -305,7 +300,7 @@ test('initializationVector passed to scrubber constructor is passed to scrubbers
 test('supplying an initializationVector in config should take precedence', () => {
   const configVector = '123'
   const mockScrubber = jest.fn(saltedHashScrubber) as any
-  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+  const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
     fields: {
@@ -321,7 +316,7 @@ test('supplying an initializationVector in config should take precedence', () =>
   const toBeSalted = 'id1'
   const data = [{ id: toBeSalted }]
   const initializationVector = nanoid()
-  const scrubber1 = new Scrubber(cfg, additionalScrubbers, initializationVector)
+  const scrubber1 = new Scrubber(cfg, additionalScrubbers, undefined, initializationVector)
   const result = scrubber1.scrub(data)
 
   // Result should stay the same since 123 is used as init vector
@@ -332,7 +327,7 @@ test('supplying an initializationVector in config of saltedHashEmailScrubber sho
   const configVector = '123'
   const domain = '@example.com.br'
   const mockScrubber = jest.fn(saltedHashEmailScrubber) as any
-  const additionalScrubbers: ScrubbersImpl = { aNewScrubber: mockScrubber }
+  const additionalScrubbers: ScrubbersMap = { aNewScrubber: mockScrubber }
 
   const cfg: ScrubberConfig = {
     fields: {
@@ -378,9 +373,7 @@ test('example (readme)', () => {
   const object = { name: 'Real Name', password: 'secret' }
 
   const scrubber = new Scrubber(cfg)
-  const newObject = scrubber.scrub(object)
-
-  console.log(newObject)
+  const _newObject = scrubber.scrub(object)
 })
 
 test('Support scrubbing based on parent', () => {
@@ -419,4 +412,11 @@ test('Parent via passed root type', () => {
   const result = scrubber.scrub(data)
 
   expect(result).toEqual({ key: 'replaced' })
+})
+
+test('getScrubberSql', () => {
+  const scrubber = new Scrubber(configStaticScrubbersMock())
+  expect(scrubber.getScrubberSql('non-existing')).toBeUndefined()
+  expect(scrubber.getScrubberSql('pw')).toMatchInlineSnapshot(`"'notsecret'"`)
+  expect(scrubber.getScrubberSql('name')).toMatchInlineSnapshot(`"'Jane Doe'"`)
 })
