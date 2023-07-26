@@ -3,6 +3,8 @@ import { _assert, _deepEquals, StringMap } from '@naturalcycles/js-lib'
 import { ScrubberConfig, ScrubbersMap, ScrubbersSQLMap } from './scrubber.model'
 import { defaultScrubbers, defaultScrubbersSQL } from './scrubbers'
 
+const defaultCfg: Partial<ScrubberConfig> = { throwOnError: false, preserveFalsy: true }
+
 export class Scrubber {
   private readonly scrubbersMap: ScrubbersMap
   private readonly scrubbersSQLMap: ScrubbersSQLMap
@@ -25,8 +27,6 @@ export class Scrubber {
     initializationVector?: string,
     rootType?: string,
   ) {
-    const defaultCfg: Partial<ScrubberConfig> = { throwOnError: false, preserveFalsy: true }
-
     this.initializationVector = initializationVector || nanoid()
     this.scrubbersMap = { ...defaultScrubbers, ...additionalScrubbersMap }
     this.scrubbersSQLMap = { ...defaultScrubbersSQL, ...additionalScrubbersSQLMap }
@@ -59,13 +59,10 @@ export class Scrubber {
     const scrubberCurrentField = this.cfg.fields[fieldName]
     if (!scrubberCurrentField) return undefined
 
-    const scrubberSQLFactory = this.scrubbersSQLMap[scrubberCurrentField.scrubber]
-    _assert(
-      scrubberSQLFactory,
-      `No SQL factory for ${scrubberCurrentField.scrubber}, used for ${fieldName}`,
-    )
+    const scrubber = this.scrubbersSQLMap[scrubberCurrentField.scrubber]
+    _assert(scrubber, `No SQL factory for ${scrubberCurrentField.scrubber}, used for ${fieldName}`)
 
-    return scrubberSQLFactory({
+    return scrubber({
       initializationVector: this.initializationVector,
       ...scrubberCurrentField.params,
     })
@@ -118,18 +115,19 @@ export class Scrubber {
         ...scrubberCurrentField.params,
       }
 
-      // Always log on errors, re-throw if enabled on config
       try {
         if (!this.cfg.preserveFalsy || dataCopy[key]) {
           dataCopy[key] = scrubber(dataCopy[key], params)
         }
       } catch (err) {
-        console.log(
-          `Error when applying scrubber '${scrubberCurrentField.scrubber}' to field '${key}'`,
-        )
-        console.error(err)
-
-        if (this.cfg.throwOnError) throw err
+        if (this.cfg.throwOnError) {
+          throw err
+        } else {
+          console.log(
+            `Error when applying scrubber '${scrubberCurrentField.scrubber}' to field '${key}'`,
+            err,
+          )
+        }
       }
     })
 
@@ -173,15 +171,13 @@ export class Scrubber {
   }
 
   private checkIfScrubbersExistAndRaise(cfg: ScrubberConfig, scrubbers: ScrubbersMap): void {
-    if (!cfg.fields) throw new Error("Missing the 'fields' key on ScrubberConfig")
+    _assert(cfg.fields, "Missing the 'fields' key on ScrubberConfig")
 
     const scrubbersOnConfig = Object.keys(cfg.fields).map(field => cfg.fields[field]!.scrubber)
     const scrubbersAvailable = Object.keys(scrubbers)
 
     scrubbersOnConfig.forEach(scrubber => {
-      if (!scrubbersAvailable.includes(scrubber)) {
-        throw new Error(`${scrubber} not found`)
-      }
+      _assert(scrubbersAvailable.includes(scrubber), `${scrubber} not found`)
     })
   }
 
