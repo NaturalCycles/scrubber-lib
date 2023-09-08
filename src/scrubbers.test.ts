@@ -258,8 +258,8 @@ describe('randomScrubber', () => {
 })
 
 test('randomScrubberSQL', () => {
-  expect(randomScrubberSQL()).toMatchInlineSnapshot(`"RANDSTR(16, HASH(VAL))"`)
-  expect(randomScrubberSQL({ length: 5 })).toMatchInlineSnapshot(`"RANDSTR(5, HASH(VAL))"`)
+  expect(randomScrubberSQL()).toMatchInlineSnapshot(`"RANDSTR(16, HASH(RANDOM()))"`)
+  expect(randomScrubberSQL({ length: 5 })).toMatchInlineSnapshot(`"RANDSTR(5, HASH(RANDOM()))"`)
 })
 
 describe('randomEmailScrubber', () => {
@@ -281,13 +281,13 @@ describe('randomEmailScrubber', () => {
 
 test('randomEmailScrubberSQL', () => {
   expect(randomEmailScrubberSQL()).toMatchInlineSnapshot(
-    `"RANDSTR(16, HASH(VAL)) || '@example.com'"`,
+    `"RANDSTR(16, HASH(RANDOM())) || '@example.com'"`,
   )
   expect(randomEmailScrubberSQL({ length: 5 })).toMatchInlineSnapshot(
-    `"RANDSTR(5, HASH(VAL)) || '@example.com'"`,
+    `"RANDSTR(5, HASH(RANDOM())) || '@example.com'"`,
   )
   expect(randomEmailScrubberSQL({ length: 5, domain: '@customdomain.com' })).toMatchInlineSnapshot(
-    `"RANDSTR(5, HASH(VAL)) || '@customdomain.com'"`,
+    `"RANDSTR(5, HASH(RANDOM())) || '@customdomain.com'"`,
   )
 })
 
@@ -324,14 +324,14 @@ test('randomEmailInContentScrubberSQL', () => {
     "REGEXP_REPLACE(
         VAL,
         '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
-        RANDSTR(16, HASH(VAL))
+        RANDSTR(16, HASH(RANDOM()))
       ) || '@example.com'"
   `)
   expect(randomEmailInContentScrubberSQL({ length: 5 })).toMatchInlineSnapshot(`
     "REGEXP_REPLACE(
         VAL,
         '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
-        RANDSTR(5, HASH(VAL))
+        RANDSTR(5, HASH(RANDOM()))
       ) || '@example.com'"
   `)
   expect(randomEmailInContentScrubberSQL({ length: 5, domain: '@customdomain.com' }))
@@ -339,7 +339,7 @@ test('randomEmailInContentScrubberSQL', () => {
       "REGEXP_REPLACE(
           VAL,
           '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
-          RANDSTR(5, HASH(VAL))
+          RANDSTR(5, HASH(RANDOM()))
         ) || '@customdomain.com'"
     `)
 })

@@ -11,6 +11,10 @@ function encloseValueForSQL(value: string | number, type: string): string {
 // The name of the original value in the SQL statement
 const sqlValueToReplace = 'VAL'
 
+// Seed for all random functions. If `HASH(${sqlValueToReplace})` is used,
+// the random value will be the same every time the table is queried
+// With `HASH(RANDOM())`, the random value will be different every time, but is safer cryptographically
+const randomGeneratorSeed = `HASH(RANDOM())`
 /*
  Undefined scrubber
 
@@ -252,7 +256,7 @@ export const randomScrubber: RandomScrubberFn = (value, additionalParams) => {
 export const randomScrubberSQL: RandomScrubberSQLFn = additionalParams => {
   const { length } = { length: 16, ...additionalParams }
   // This doesn't respect the alphabet :(
-  return `RANDSTR(${length}, HASH(${sqlValueToReplace}))`
+  return `RANDSTR(${length}, ${randomGeneratorSeed})`
 }
 
 /*
@@ -289,7 +293,7 @@ export const randomEmailScrubberSQL: RandomEmailScrubberSQLFn = additionalParams
     ...additionalParams,
   }
   // This doesn't respect the alphabet :(
-  return `RANDSTR(${length}, HASH(${sqlValueToReplace})) || '${domain}'`
+  return `RANDSTR(${length}, ${randomGeneratorSeed}) || '${domain}'`
 }
 
 /*
@@ -336,7 +340,7 @@ export const randomEmailInContentScrubberSQL: RandomEmailInContentScrubberSQLFn 
     return `REGEXP_REPLACE(
     ${sqlValueToReplace},
     '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
-    RANDSTR(${length}, HASH(${sqlValueToReplace}))
+    RANDSTR(${length}, ${randomGeneratorSeed})
   ) || '${domain}'`
   }
 
@@ -447,14 +451,14 @@ export const bcryptStringScrubberSQL: BcryptStringScrubberSQLFn = params => {
       replacementDLL += `WHEN '${k}' THEN '${v}'\n                  `
     }
   }
-  replacementDLL += `ELSE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(${sqlValueToReplace}, '$'), 0, 3), '$') || '$' || RANDSTR(53, HASH(${sqlValueToReplace}))`
+  replacementDLL += `ELSE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(${sqlValueToReplace}, '$'), 0, 3), '$') || '$' || RANDSTR(53, ${randomGeneratorSeed})`
 
   return `CASE WHEN ARRAY_SIZE(ARRAY_SLICE(SPLIT(${sqlValueToReplace}, '$'), 0, 3)) >= 3 -- If there are at least 3 $ in the string
           THEN
               CASE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(${sqlValueToReplace}, '$'), 0, 3), '$') || '$' -- this is the prefix
                   ${replacementDLL}
               END
-          ELSE '$2a$12$' || RANDSTR(53, HASH(${sqlValueToReplace}))
+          ELSE '$2a$12$' || RANDSTR(53, ${randomGeneratorSeed})
           END`
 }
 
