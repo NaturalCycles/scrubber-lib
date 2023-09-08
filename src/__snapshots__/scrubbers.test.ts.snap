@@ -5,9 +5,9 @@ exports[`bcryptStringScrubberSQL 1`] = `
           THEN
               CASE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3), '$') || '$' -- this is the prefix
                   WHEN FALSE THEN ''
-                  ELSE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3), '$') || '$' || RANDSTR(53, HASH(VAL))
+                  ELSE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3), '$') || '$' || RANDSTR(53, HASH(RANDOM()))
               END
-          ELSE '$2a$12$' || RANDSTR(53, HASH(VAL))
+          ELSE '$2a$12$' || RANDSTR(53, HASH(RANDOM()))
           END"
 `;
 
@@ -18,9 +18,9 @@ exports[`bcryptStringScrubberSQL 2`] = `
                   WHEN FALSE THEN ''
                   WHEN '$2a$10$' THEN '$2a$10$456'
                   WHEN '$2a$12$' THEN '$2a$12$123'
-                  ELSE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3), '$') || '$' || RANDSTR(53, HASH(VAL))
+                  ELSE ARRAY_TO_STRING(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3), '$') || '$' || RANDSTR(53, HASH(RANDOM()))
               END
-          ELSE '$2a$12$' || RANDSTR(53, HASH(VAL))
+          ELSE '$2a$12$' || RANDSTR(53, HASH(RANDOM()))
           END"
 `;
 
