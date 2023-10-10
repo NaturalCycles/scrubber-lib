@@ -10,7 +10,7 @@ export interface ScrubberConfig {
    * Populated at runtime from any config keys with dots, key is last component (after last dot) and array contains
    * preceeding components a.k.a "parents"
    */
-  splitFields?: StringMap<string[]>
+  splitFields?: StringMap<string[][]>
 
   // If false, Scrubber catches any exceptions that may occur when using scrubbers,
   // logs and ignore them. If true, exceptions are logged and raised
