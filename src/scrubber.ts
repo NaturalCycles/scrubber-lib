@@ -73,6 +73,7 @@ export class Scrubber {
   }
 
   private applyScrubbers<T>(data: T, parents: string[] = []): T {
+    const isArray = Array.isArray(data)
     const dataCopy: any = Array.isArray(data) ? [...data] : { ...data }
 
     Object.keys(dataCopy).forEach(key => {
@@ -102,7 +103,8 @@ export class Scrubber {
 
         // Deep traverse
         if (typeof dataCopy[key] === 'object' && dataCopy[key]) {
-          const parentsNext = [...parents, key]
+          // Don't append array keys to parent array as it breaks parent matching
+          const parentsNext = isArray ? parents : [...parents, key]
           dataCopy[key] = this.applyScrubbers(dataCopy[key], parentsNext)
         }
 
