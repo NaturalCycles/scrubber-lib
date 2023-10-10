@@ -57,7 +57,7 @@ export function configParentScrubbersMock(): ScrubberConfig {
           replacement: 'replaced',
         },
       },
-      'encryption.key': {
+      'encryption.key, second.key': {
         scrubber: 'staticScrubber',
         params: {
           replacement: 'replaced',

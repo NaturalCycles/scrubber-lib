@@ -387,12 +387,12 @@ test('Support scrubbing based on parent', () => {
 })
 
 test('Support scrubbing array based on parent', () => {
-  const data = { nested: { encryption: [{ key: 'secret' }] } }
+  const data = { nested: { encryption: [{ key: 'secret' }], second: [{ key: 'secret2' }] } }
   const scrubber = new Scrubber(configParentScrubbersMock())
   const result = scrubber.scrub(data)
 
   expect(result).toEqual({
-    nested: { encryption: [{ key: 'replaced' }] },
+    nested: { encryption: [{ key: 'replaced' }], second: [{ key: 'replaced' }] },
   })
 })
 

@@ -79,16 +79,13 @@ export class Scrubber {
     Object.keys(dataCopy).forEach(key => {
       let scrubberCurrentField = this.cfg.fields[key]
 
-      if (
-        !scrubberCurrentField &&
-        this.cfg.splitFields?.[key] &&
-        parents &&
-        this.arrayContainsInOrder(parents, this.cfg.splitFields[key])
-      ) {
-        const splitFieldParentCfg: string[] = this.cfg.splitFields[key] || []
-
-        const recomposedKey = [...splitFieldParentCfg, key].join('.')
-        scrubberCurrentField = this.cfg.fields[recomposedKey]
+      if (!scrubberCurrentField && this.cfg.splitFields?.[key] && parents) {
+        for (const splitFieldParentCfg of this.cfg.splitFields[key]!) {
+          if (this.arrayContainsInOrder(parents, splitFieldParentCfg)) {
+            const recomposedKey = [...splitFieldParentCfg, key].join('.')
+            scrubberCurrentField = this.cfg.fields[recomposedKey]
+          }
+        }
       }
 
       if (!scrubberCurrentField) {
@@ -183,14 +180,16 @@ export class Scrubber {
     })
   }
 
-  private splitFields(cfg: ScrubberConfig): StringMap<string[]> {
-    const output: StringMap<string[]> = {}
+  private splitFields(cfg: ScrubberConfig): StringMap<string[][]> {
+    const output: StringMap<string[][]> = {}
     for (const field of Object.keys(cfg.fields)) {
       const splitField = field.split('.')
 
       if (splitField.length > 1) {
         const key = splitField.pop()!
-        output[key] = splitField
+        // Support multiple keys with different parents
+        output[key] ||= []
+        output[key]!.push(splitField)
       }
     }
     return output
