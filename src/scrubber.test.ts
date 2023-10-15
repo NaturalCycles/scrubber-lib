@@ -1,5 +1,5 @@
-import { nanoid } from 'nanoid'
-import { deepFreeze } from '@naturalcycles/dev-lib/dist/testing'
+import { _deepFreeze } from '@naturalcycles/js-lib'
+import { nanoid } from '@naturalcycles/nodejs-lib'
 import { Scrubber } from './scrubber'
 import { ScrubberConfig, ScrubberFn, ScrubbersMap } from './scrubber.model'
 import { saltedHashEmailScrubber, saltedHashScrubber } from './scrubbers'
@@ -36,14 +36,14 @@ test('returns an array with one object when input is an array with one object', 
 
 test('applies to more than a field', () => {
   const data = [{ pw: 'secret', name: 'Real Name' }]
-  deepFreeze(data) // Ensure data doesnt mutate
+  _deepFreeze(data) // Ensure data doesnt mutate
   const result = scrub(data)
   expect(result).toEqual([{ pw: 'notsecret', name: 'Jane Doe' }])
 })
 
 test('applies to nested fields (deep transverse, 2 levels)', () => {
   const data = [{ account: { pw: 'secret', name: 'Real Name' } }]
-  deepFreeze(data) // Ensure data doesnt mutate
+  _deepFreeze(data) // Ensure data doesnt mutate
 
   const result = scrub(data)
   expect(result).toEqual([{ account: { pw: 'notsecret', name: 'Jane Doe' } }])
@@ -51,7 +51,7 @@ test('applies to nested fields (deep transverse, 2 levels)', () => {
 
 test('applies to nested fields (deep transverse, 3 levels)', () => {
   const data = [{ object: { account: { pw: 'secret', name: 'Real Name' } } }]
-  deepFreeze(data) // Ensure data doesnt mutate
+  _deepFreeze(data) // Ensure data doesnt mutate
 
   const result = scrub(data)
   expect(result).toEqual([{ object: { account: { pw: 'notsecret', name: 'Jane Doe' } } }])
@@ -61,7 +61,7 @@ test('applies to nested arrays', () => {
   const obj1 = { pw: 'shouldChange', safe: 'shouldStay' }
   const obj2 = { name: 'personalInformation', safe2: 'isSafe' }
   const users = [{ users: [obj1, obj2] }]
-  deepFreeze(users)
+  _deepFreeze(users)
 
   const result = scrub(users)
   expect(result[0]!['users'][0]).toEqual({ pw: 'notsecret', safe: 'shouldStay' })
@@ -71,7 +71,7 @@ test('applies to nested arrays', () => {
 
 test('keeps not modified fields', () => {
   const data = [{ safeField: 'keep', email: 'real@email.com' }]
-  deepFreeze(data) // Ensure data doesnt mutate
+  _deepFreeze(data) // Ensure data doesnt mutate
 
   const result = scrub(data, configEmailScrubberMock())
   expect(result).toEqual([{ safeField: 'keep', email: 'anonymized@email.com' }])
@@ -90,7 +90,7 @@ test('supports additional scrubbers', () => {
   }
 
   const data = [{ target: 'original' }]
-  deepFreeze(data) // Ensure data doesnt mutate
+  _deepFreeze(data) // Ensure data doesnt mutate
 
   const result = scrub(data, cfg, additionalScrubbers)
   expect(result).toEqual([{ target: 'modified' }])
@@ -98,7 +98,7 @@ test('supports additional scrubbers', () => {
 
 test('supports comma-separated fields in field name', () => {
   const data = [{ field1: 'orig1', field2: 'orig2' }]
-  deepFreeze(data) // Ensure data doesnt mutate
+  _deepFreeze(data) // Ensure data doesnt mutate
 
   const result = scrub(data, configMultiFieldMock())
   expect(result).toEqual([{ field1: 'modified', field2: 'modified' }])
@@ -216,7 +216,7 @@ test('initializationVector is passed as param to scrubbers', () => {
   }
 
   const data = [{ pw: 'secret' }]
-  deepFreeze(data) // Ensure data doesnt mutate
+  _deepFreeze(data) // Ensure data doesnt mutate
 
   const scrubber = new Scrubber(cfg, additionalScrubbers)
   scrubber.scrub(data)

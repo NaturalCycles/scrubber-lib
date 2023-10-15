@@ -1,4 +1,4 @@
-import { nanoid } from 'nanoid'
+import { nanoid } from '@naturalcycles/nodejs-lib'
 import {
   bcryptStringScrubber,
   bcryptStringScrubberSQL,

@@ -9,7 +9,7 @@ jobs:
       NODE_OPTIONS: '--max-old-space-size=3200'
       CC_TEST_REPORTER_ID: 2420941f712b3f0a35c2225ac757fad68076cc107e256a57b7bd6a3bb5a481ac
     steps:
-      - { uses: actions/checkout@v3, with: { persist-credentials: false } }
+      - { uses: actions/checkout@v4, with: { persist-credentials: false } }
       - { uses: actions/setup-node@v3, with: { node-version: 18, cache: 'yarn' } }
       - { name: yarn, run: yarn --frozen-lockfile }
 

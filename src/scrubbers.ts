@@ -1,6 +1,6 @@
 import * as crypto from 'node:crypto'
 import { _assert } from '@naturalcycles/js-lib'
-import { customAlphabet } from 'nanoid'
+import { nanoIdCustomAlphabet } from '@naturalcycles/nodejs-lib'
 import { ScrubberFn, ScrubbersMap, ScrubberSQLFn, ScrubbersSQLMap } from './scrubber.model'
 
 function encloseValueForSQL(value: string | number, type: string): string {
@@ -250,7 +250,7 @@ export type RandomScrubberSQLFn = ScrubberSQLFn<RandomScrubberParams>
 
 export const randomScrubber: RandomScrubberFn = (value, additionalParams) => {
   const params = { alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE, length: 16, ...additionalParams }
-  return customAlphabet(params.alphabet, params['length'])()
+  return nanoIdCustomAlphabet(params.alphabet, params['length'])()
 }
 
 export const randomScrubberSQL: RandomScrubberSQLFn = additionalParams => {
@@ -282,7 +282,7 @@ export const randomEmailScrubber: RandomEmailScrubberFn = (value, additionalPara
     domain: '@example.com',
     ...additionalParams,
   }
-  return customAlphabet(params.alphabet, params['length'])() + params.domain
+  return nanoIdCustomAlphabet(params.alphabet, params['length'])() + params.domain
 }
 
 export const randomEmailScrubberSQL: RandomEmailScrubberSQLFn = additionalParams => {
@@ -428,7 +428,7 @@ export const bcryptStringScrubber: BcryptStringScrubberFn = (value, params) => {
 
   // Keep value until 3rd $
   const cutoff = nthChar(value, '$', 3)
-  if (!cutoff) return `$2a$12$${customAlphabet(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)()}`
+  if (!cutoff) return `$2a$12$${nanoIdCustomAlphabet(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)()}`
 
   const prefix = value.substring(0, cutoff)
 
@@ -439,7 +439,7 @@ export const bcryptStringScrubber: BcryptStringScrubberFn = (value, params) => {
     }
   }
 
-  return `${prefix}${customAlphabet(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)()}`
+  return `${prefix}${nanoIdCustomAlphabet(ALPHABET_ALPHANUMERIC_LOWERCASE, 53)()}`
 }
 export const bcryptStringScrubberSQL: BcryptStringScrubberSQLFn = params => {
   // to have at least one WHEN clause, so the ELSE clause is valid

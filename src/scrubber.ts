@@ -1,5 +1,5 @@
-import { nanoid } from 'nanoid'
 import { _assert, _deepEquals, StringMap } from '@naturalcycles/js-lib'
+import { nanoid } from '@naturalcycles/nodejs-lib'
 import { ScrubberConfig, ScrubbersMap, ScrubbersSQLMap } from './scrubber.model'
 import { defaultScrubbers, defaultScrubbersSQL } from './scrubbers'
 

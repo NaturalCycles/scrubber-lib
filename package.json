@@ -5,7 +5,7 @@
   },
   "dependencies": {
     "@naturalcycles/js-lib": "^14.55.0",
-    "nanoid": "^3.1.12"
+    "@naturalcycles/nodejs-lib": "^13.1.4"
   },
   "devDependencies": {
     "@naturalcycles/dev-lib": "^13.14.2",
