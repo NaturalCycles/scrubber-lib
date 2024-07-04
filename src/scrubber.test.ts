@@ -430,3 +430,32 @@ test('getScrubberSql', () => {
   expect(scrubber.getScrubberSql('pw')).toMatchInlineSnapshot(`"'notsecret'"`)
   expect(scrubber.getScrubberSql('name')).toMatchInlineSnapshot(`"'Jane Doe'"`)
 })
+
+test('macAndIdScrubber should scrub a list of objects', () => {
+  const data = {
+    HardwareDevices: [
+      { id: '123|mac', mac: 'mac', foo: 'bar' },
+      { id: '123|cheese', mac: 'cheese', foo: 'bar' },
+      { id: 'tom', mac: 'tom', foo: 'bar' },
+      { id: 'mac|123|mac', mac: 'mac', foo: 'bar' },
+    ],
+  }
+
+  const result = scrub(data, {
+    fields: {
+      HardwareDevices: {
+        scrubber: 'macAndIdScrubber',
+        params: { otherFieldsToScrub: ['id'] },
+      },
+    },
+  })
+
+  expect(result).toEqual({
+    HardwareDevices: [
+      { id: '123|1', mac: '1', foo: 'bar' },
+      { id: '123|2', mac: '2', foo: 'bar' },
+      { id: '3', mac: '3', foo: 'bar' },
+      { id: '4|123|4', mac: '4', foo: 'bar' },
+    ],
+  })
+})

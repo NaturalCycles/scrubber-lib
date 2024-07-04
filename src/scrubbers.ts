@@ -1,5 +1,5 @@
 import * as crypto from 'node:crypto'
-import { _assert } from '@naturalcycles/js-lib'
+import { _assert, AnyObject } from '@naturalcycles/js-lib'
 import { nanoIdCustomAlphabet } from '@naturalcycles/nodejs-lib'
 import { ScrubberFn, ScrubbersMap, ScrubberSQLFn, ScrubbersSQLMap } from './scrubber.model'
 
@@ -462,6 +462,51 @@ export const bcryptStringScrubberSQL: BcryptStringScrubberSQLFn = params => {
           END`
 }
 
+export type MacAndIdScrubberFn = ScrubberFn<AnyObject[] | undefined, MacAndIdScrubberParams>
+
+export interface MacAndIdScrubberParams {
+  /**
+   * Defaults to `mac`
+   */
+  fieldNameOfMacAddress?: string
+
+  /**
+   * Defaults to `[]`
+   */
+  otherFieldsToScrub?: string[]
+}
+
+export const macAndIdScrubber: MacAndIdScrubberFn = (hardwareDevices, opts) => {
+  if (!hardwareDevices) return
+  if (!Array.isArray(hardwareDevices)) return hardwareDevices
+
+  const fieldNameOfMacAddress = opts?.fieldNameOfMacAddress || 'mac'
+  const otherFieldsToScrub = opts?.otherFieldsToScrub || []
+
+  let counter = 0
+
+  return hardwareDevices.map(hardwareDevice => {
+    const mac = hardwareDevice[fieldNameOfMacAddress]
+    if (typeof mac !== 'string') return hardwareDevice
+
+    counter += 1
+    const replacement = String(counter)
+
+    const newHardwareDevice: AnyObject = {
+      ...hardwareDevice,
+      [fieldNameOfMacAddress]: replacement,
+    }
+
+    otherFieldsToScrub.forEach(key => {
+      const value = newHardwareDevice[key]
+      if (typeof value !== 'string') return
+      newHardwareDevice[key] = value.replaceAll(mac, replacement)
+    })
+
+    return newHardwareDevice
+  })
+}
+
 function nthChar(str: string, character: string, n: number): number | undefined {
   let count = 0
   let i = 0
@@ -489,6 +534,7 @@ export const defaultScrubbers: ScrubbersMap = {
   saltedHashScrubber,
   saltedHashEmailScrubber,
   bcryptStringScrubber,
+  macAndIdScrubber,
 }
 
 export const defaultScrubbersSQL: ScrubbersSQLMap = {

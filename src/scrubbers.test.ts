@@ -7,6 +7,7 @@ import {
   charsFromRightScrubberSQL,
   isoDateStringScrubber,
   isoDateStringScrubberSQL,
+  macAndIdScrubber,
   preserveOriginalScrubber,
   preserveOriginalScrubberSQL,
   randomEmailInContentScrubber,
@@ -433,4 +434,71 @@ test('bcryptStringScrubberSQL', () => {
   expect(
     bcryptStringScrubberSQL({ replacements: '$2a$10$:$2a$10$456,$2a$12$:$2a$12$123' }),
   ).toMatchSnapshot()
+})
+
+describe('macAndIdScrubber', () => {
+  test('should scrub the entire `mac` field with a counter', () => {
+    const data = [{ mac: '00:00:00:00:00:00' }, { mac: '00:00:00:00:00:01' }, { mac: 'foo' }]
+
+    const result = macAndIdScrubber(data)
+
+    expect(result).toEqual([{ mac: '1' }, { mac: '2' }, { mac: '3' }])
+  })
+
+  test('should be possible to change the name of property with the MAC address', () => {
+    const data = [
+      { foo: '00:00:00:00:00:00' },
+      { foo: '00:00:00:00:00:01' },
+      { mac: '00:00:00:00:00:01' },
+    ]
+
+    const result = macAndIdScrubber(data, { fieldNameOfMacAddress: 'foo' })
+
+    expect(result).toEqual([{ foo: '1' }, { foo: '2' }, { mac: '00:00:00:00:00:01' }])
+  })
+
+  test('should scrub the mac address from other fields with the same value', () => {
+    const data = [
+      { mac: '00:00:00:00:00:00', id: 'foo|00:00:00:00:00:00|bar' },
+      { mac: '00:00:00:00:00:01' },
+    ]
+
+    const result = macAndIdScrubber(data, { otherFieldsToScrub: ['id'] })
+
+    expect(result).toEqual([{ mac: '1', id: 'foo|1|bar' }, { mac: '2' }])
+  })
+
+  test('should not scrub the mac address from other fields when not instructed', () => {
+    const data = [{ mac: '00:00:00:00:00:00', id: 'foo|00:00:00:00:00:00|bar' }]
+
+    const result = macAndIdScrubber(data)
+
+    expect(result).toEqual([{ mac: '1', id: 'foo|00:00:00:00:00:00|bar' }])
+  })
+
+  test('should not scrub when the field is missing', () => {
+    const data = [{ foo: '00:00:00:00:00:00' }, { foo: '00:00:00:00:00:01' }, { foo: 'foo' }]
+
+    expect(macAndIdScrubber(data)).toEqual([
+      { foo: '00:00:00:00:00:00' },
+      { foo: '00:00:00:00:00:01' },
+      { foo: 'foo' },
+    ])
+
+    expect(macAndIdScrubber(data, { fieldNameOfMacAddress: 'mac' })).toEqual([
+      { foo: '00:00:00:00:00:00' },
+      { foo: '00:00:00:00:00:01' },
+      { foo: 'foo' },
+    ])
+
+    expect(
+      macAndIdScrubber(data, { fieldNameOfMacAddress: 'mac', otherFieldsToScrub: ['id'] }),
+    ).toEqual([{ foo: '00:00:00:00:00:00' }, { foo: '00:00:00:00:00:01' }, { foo: 'foo' }])
+  })
+
+  test('should not scrub when the data is not a list', () => {
+    const data = { mac: '00:00:00:00:00:00' }
+
+    expect(macAndIdScrubber(data as any)).toEqual({ mac: '00:00:00:00:00:00' })
+  })
 })
