@@ -550,4 +550,5 @@ export const defaultScrubbersSQL: ScrubbersSQLMap = {
   saltedHashScrubber: saltedHashScrubberSQL,
   saltedHashEmailScrubber: saltedHashEmailScrubberSQL,
   bcryptStringScrubber: bcryptStringScrubberSQL,
+  macAndIdScrubber: undefinedScrubberSQL,
 }

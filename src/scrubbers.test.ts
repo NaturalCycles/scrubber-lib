@@ -1,3 +1,4 @@
+import { _stringMapEntries } from '@naturalcycles/js-lib'
 import { nanoid } from '@naturalcycles/nodejs-lib'
 import {
   bcryptStringScrubber,
@@ -26,6 +27,8 @@ import {
   undefinedScrubberSQL,
   unixTimestampScrubber,
   unixTimestampScrubberSQL,
+  defaultScrubbers,
+  defaultScrubbersSQL,
 } from './scrubbers'
 
 const bryptStr1 = '$2a$12$HYNzBb8XYOZZeRwZDiVux.orKNqkSVAoXBDc9Gw7nSxr8rcZupbRK'
@@ -501,4 +504,15 @@ describe('macAndIdScrubber', () => {
 
     expect(macAndIdScrubber(data as any)).toEqual({ mac: '00:00:00:00:00:00' })
   })
+})
+
+const scrubberNames = _stringMapEntries(defaultScrubbers).map(([k]) => k)
+test.each(scrubberNames)('the %s should have its SQL scrubber counterpart', scrubberName => {
+  console.log(scrubberName, defaultScrubbersSQL[scrubberName])
+  expect(defaultScrubbersSQL[scrubberName]).toBeDefined()
+})
+
+const sqlScrubberNames = _stringMapEntries(defaultScrubbersSQL).map(([k]) => k)
+test.each(sqlScrubberNames)('the %s should have its scrubber counterpart', scrubberName => {
+  expect(defaultScrubbers[scrubberName]).toBeDefined()
 })
