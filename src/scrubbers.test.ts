@@ -8,7 +8,7 @@ import {
   charsFromRightScrubberSQL,
   isoDateStringScrubber,
   isoDateStringScrubberSQL,
-  macAndIdScrubber,
+  saltedHashSubstringScrubber,
   preserveOriginalScrubber,
   preserveOriginalScrubberSQL,
   randomEmailInContentScrubber,
@@ -439,70 +439,65 @@ test('bcryptStringScrubberSQL', () => {
   ).toMatchSnapshot()
 })
 
-describe('macAndIdScrubber', () => {
-  test('should scrub the entire `mac` field with a counter', () => {
-    const data = [{ mac: '00:00:00:00:00:00' }, { mac: '00:00:00:00:00:01' }, { mac: 'foo' }]
+describe('saltedHashSubstringScrubber', () => {
+  const initializationVector = nanoid()
 
-    const result = macAndIdScrubber(data)
+  test('should scrub the matching substring with a hash', () => {
+    const result = saltedHashSubstringScrubber('foo|00:00:00:00:00:00|bar', {
+      regex: '00:00:00:00:00:00',
+      initializationVector,
+    })
 
-    expect(result).toEqual([{ mac: '1' }, { mac: '2' }, { mac: '3' }])
+    expect(result).toMatch(/foo\|.{64}\|bar/)
+    expect(result).not.toContain('00:00:00:00:00:00')
   })
 
-  test('should be possible to change the name of property with the MAC address', () => {
-    const data = [
-      { foo: '00:00:00:00:00:00' },
-      { foo: '00:00:00:00:00:01' },
-      { mac: '00:00:00:00:00:01' },
-    ]
+  test('should scrub the same value with the same hash', () => {
+    const result1 = saltedHashSubstringScrubber('foo|00:00:00:00:00:00|bar', {
+      regex: '00:00:00:00:00:00',
+      initializationVector,
+    })
 
-    const result = macAndIdScrubber(data, { fieldNameOfMacAddress: 'foo' })
+    const result2 = saltedHashSubstringScrubber('bee|00:00:00:00:00:00|boo', {
+      regex: '00:00:00:00:00:00',
+      initializationVector,
+    })
 
-    expect(result).toEqual([{ foo: '1' }, { foo: '2' }, { mac: '00:00:00:00:00:01' }])
+    expect(result1?.substring(4, 64)).toBe(result2?.substring(4, 64))
   })
 
-  test('should scrub the mac address from other fields with the same value', () => {
-    const data = [
-      { mac: '00:00:00:00:00:00', id: 'foo|00:00:00:00:00:00|bar' },
-      { mac: '00:00:00:00:00:01' },
-    ]
+  test('should scrub substring using regex', () => {
+    const result = saltedHashSubstringScrubber('foo|00:00:00:00:00:00|bar', {
+      regex:
+        '[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}',
+      initializationVector,
+    })
 
-    const result = macAndIdScrubber(data, { otherFieldsToScrub: ['id'] })
-
-    expect(result).toEqual([{ mac: '1', id: 'foo|1|bar' }, { mac: '2' }])
+    expect(result).toMatch(/foo\|.{64}\|bar/)
+    expect(result).not.toContain('00:00:00:00:00:00')
   })
 
-  test('should not scrub the mac address from other fields when not instructed', () => {
-    const data = [{ mac: '00:00:00:00:00:00', id: 'foo|00:00:00:00:00:00|bar' }]
+  test('should scrub multiple occurrences', () => {
+    const result = saltedHashSubstringScrubber('foo|max|bar|max|boo', {
+      regex: 'max',
+      initializationVector,
+    })
 
-    const result = macAndIdScrubber(data)
-
-    expect(result).toEqual([{ mac: '1', id: 'foo|00:00:00:00:00:00|bar' }])
+    expect(result).not.toContain('max')
   })
 
-  test('should not scrub when the field is missing', () => {
-    const data = [{ foo: '00:00:00:00:00:00' }, { foo: '00:00:00:00:00:01' }, { foo: 'foo' }]
-
-    expect(macAndIdScrubber(data)).toEqual([
-      { foo: '00:00:00:00:00:00' },
-      { foo: '00:00:00:00:00:01' },
-      { foo: 'foo' },
-    ])
-
-    expect(macAndIdScrubber(data, { fieldNameOfMacAddress: 'mac' })).toEqual([
-      { foo: '00:00:00:00:00:00' },
-      { foo: '00:00:00:00:00:01' },
-      { foo: 'foo' },
-    ])
-
-    expect(
-      macAndIdScrubber(data, { fieldNameOfMacAddress: 'mac', otherFieldsToScrub: ['id'] }),
-    ).toEqual([{ foo: '00:00:00:00:00:00' }, { foo: '00:00:00:00:00:01' }, { foo: 'foo' }])
+  test('should throw when the salt is missing', () => {
+    expect(() => saltedHashSubstringScrubber('foo|max|bar', { regex: 'max' } as any)).toThrow(
+      'Initialization vector is missing',
+    )
   })
 
-  test('should not scrub when the data is not a list', () => {
-    const data = { mac: '00:00:00:00:00:00' }
-
-    expect(macAndIdScrubber(data as any)).toEqual({ mac: '00:00:00:00:00:00' })
+  test('should throw when the regex or substring is missing', () => {
+    expect(() =>
+      saltedHashSubstringScrubber('foo|max|bar', {
+        initializationVector,
+      } as any),
+    ).toThrow('Substring or regex is missing')
   })
 })
 

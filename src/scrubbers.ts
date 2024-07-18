@@ -1,5 +1,5 @@
 import * as crypto from 'node:crypto'
-import { _assert, AnyObject } from '@naturalcycles/js-lib'
+import { _assert } from '@naturalcycles/js-lib'
 import { nanoIdCustomAlphabet } from '@naturalcycles/nodejs-lib'
 import { ScrubberFn, ScrubbersMap, ScrubberSQLFn, ScrubbersSQLMap } from './scrubber.model'
 
@@ -462,49 +462,40 @@ export const bcryptStringScrubberSQL: BcryptStringScrubberSQLFn = params => {
           END`
 }
 
-export type MacAndIdScrubberFn = ScrubberFn<AnyObject[] | undefined, MacAndIdScrubberParams>
+export type SaltedHashSubstringScrubberFn = ScrubberFn<
+  string | undefined,
+  SaltedHashSubstringScrubberParams
+>
 
-export interface MacAndIdScrubberParams {
-  /**
-   * Defaults to `mac`
-   */
-  fieldNameOfMacAddress?: string
+export type SaltedHashSubstringScrubberSQLFn = ScrubberSQLFn<SaltedHashSubstringScrubberParams>
 
-  /**
-   * Defaults to `[]`
-   */
-  otherFieldsToScrub?: string[]
+export interface SaltedHashSubstringScrubberParams {
+  initializationVector: string
+  regex: string
 }
 
-export const macAndIdScrubber: MacAndIdScrubberFn = (hardwareDevices, opts) => {
-  if (!hardwareDevices) return
-  if (!Array.isArray(hardwareDevices)) return hardwareDevices
+export const saltedHashSubstringScrubber: SaltedHashSubstringScrubberFn = (value, params) => {
+  _assert(params?.initializationVector, 'Initialization vector is missing')
+  _assert(params?.regex, 'Substring or regex is missing')
 
-  const fieldNameOfMacAddress = opts?.fieldNameOfMacAddress || 'mac'
-  const otherFieldsToScrub = opts?.otherFieldsToScrub || []
+  if (!value) return value
 
-  let counter = 0
+  const regex = new RegExp(params.regex, 'g')
 
-  return hardwareDevices.map(hardwareDevice => {
-    const mac = hardwareDevice[fieldNameOfMacAddress]
-    if (typeof mac !== 'string') return hardwareDevice
+  return value.replace(regex, substring =>
+    crypto.createHash('sha256').update(substring).update(params.initializationVector).digest('hex'),
+  )
+}
 
-    counter += 1
-    const replacement = String(counter)
+export const saltedHashSubstringScrubberSQL: SaltedHashSubstringScrubberSQLFn = params => {
+  _assert(params?.initializationVector, 'Initialization vector is missing')
+  _assert(params?.regex, 'Substring or regex is missing')
 
-    const newHardwareDevice: AnyObject = {
-      ...hardwareDevice,
-      [fieldNameOfMacAddress]: replacement,
-    }
+  const substringToReplace = `REGEXP_SUBSTR(${sqlValueToReplace}, ${params.regex})`
+  const hashedValue = `SHA2(${substringToReplace} || '${params.initializationVector}', 256)`
+  const replacedValue = `REGEXP_REPLACE(${sqlValueToReplace}, ${params.regex}, ${hashedValue})`
 
-    otherFieldsToScrub.forEach(key => {
-      const value = newHardwareDevice[key]
-      if (typeof value !== 'string') return
-      newHardwareDevice[key] = value.replaceAll(mac, replacement)
-    })
-
-    return newHardwareDevice
-  })
+  return replacedValue
 }
 
 function nthChar(str: string, character: string, n: number): number | undefined {
@@ -534,7 +525,7 @@ export const defaultScrubbers: ScrubbersMap = {
   saltedHashScrubber,
   saltedHashEmailScrubber,
   bcryptStringScrubber,
-  macAndIdScrubber,
+  saltedHashSubstringScrubber,
 }
 
 export const defaultScrubbersSQL: ScrubbersSQLMap = {
@@ -550,5 +541,5 @@ export const defaultScrubbersSQL: ScrubbersSQLMap = {
   saltedHashScrubber: saltedHashScrubberSQL,
   saltedHashEmailScrubber: saltedHashEmailScrubberSQL,
   bcryptStringScrubber: bcryptStringScrubberSQL,
-  macAndIdScrubber: undefinedScrubberSQL,
+  saltedHashSubstringScrubber: saltedHashSubstringScrubberSQL,
 }
