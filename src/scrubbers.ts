@@ -491,9 +491,9 @@ export const saltedHashSubstringScrubberSQL: SaltedHashSubstringScrubberSQLFn = 
   _assert(params?.initializationVector, 'Initialization vector is missing')
   _assert(params?.regex, 'Substring or regex is missing')
 
-  const substringToReplace = `REGEXP_SUBSTR(${sqlValueToReplace}, ${params.regex})`
+  const substringToReplace = `COALESCE(REGEXP_SUBSTR(${sqlValueToReplace}, '${params.regex}'), '')`
   const hashedValue = `SHA2(${substringToReplace} || '${params.initializationVector}', 256)`
-  const replacedValue = `REGEXP_REPLACE(${sqlValueToReplace}, ${params.regex}, ${hashedValue})`
+  const replacedValue = `REGEXP_REPLACE(${sqlValueToReplace}, '${params.regex}', ${hashedValue})`
 
   return replacedValue
 }
