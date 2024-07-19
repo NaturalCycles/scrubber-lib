@@ -430,3 +430,53 @@ test('getScrubberSql', () => {
   expect(scrubber.getScrubberSql('pw')).toMatchInlineSnapshot(`"'notsecret'"`)
   expect(scrubber.getScrubberSql('name')).toMatchInlineSnapshot(`"'Jane Doe'"`)
 })
+
+test('saltedHashSubstringScrubber should scrub substring values', () => {
+  const data = {
+    Data: [
+      { id: '01' },
+      { id: 'ab02cd' },
+      { id: 'ab03cd', foo: '03' },
+      { id: 'ab04cd', foo: 'ab04cd' },
+      { id: '01\n02\n03' },
+    ],
+  }
+
+  const result = scrub(data, {
+    fields: {
+      'id,foo': {
+        scrubber: 'saltedHashSubstringScrubber',
+        params: {
+          regex: ['\\d\\d'],
+          initializationVector: 'initializationVector',
+        },
+      },
+    },
+  })
+
+  expect(result).toMatchInlineSnapshot(`
+{
+  "Data": [
+    {
+      "id": "42bb960e91b4abf82bd6bdcc8e49cb405678ba5655a1cdc0210a4089cf2980f9",
+    },
+    {
+      "id": "ab5365d6a9320a362fe52dbd54a20bc58eaa775d548e20dccf58d761882201381acd",
+    },
+    {
+      "foo": "bb722ef61aa727e4a61aab72132badd39388204e9c6d8653c90a313a581bd622",
+      "id": "abbb722ef61aa727e4a61aab72132badd39388204e9c6d8653c90a313a581bd622cd",
+    },
+    {
+      "foo": "ab67fe825923d446fa7cd7711e66345232ab15a4bdc1cc9590b975353be70ad616cd",
+      "id": "ab67fe825923d446fa7cd7711e66345232ab15a4bdc1cc9590b975353be70ad616cd",
+    },
+    {
+      "id": "42bb960e91b4abf82bd6bdcc8e49cb405678ba5655a1cdc0210a4089cf2980f9
+5365d6a9320a362fe52dbd54a20bc58eaa775d548e20dccf58d761882201381a
+bb722ef61aa727e4a61aab72132badd39388204e9c6d8653c90a313a581bd622",
+    },
+  ],
+}
+`)
+})

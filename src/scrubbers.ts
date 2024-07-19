@@ -462,6 +462,42 @@ export const bcryptStringScrubberSQL: BcryptStringScrubberSQLFn = params => {
           END`
 }
 
+export type SaltedHashSubstringScrubberFn = ScrubberFn<
+  string | undefined,
+  SaltedHashSubstringScrubberParams
+>
+
+export type SaltedHashSubstringScrubberSQLFn = ScrubberSQLFn<SaltedHashSubstringScrubberParams>
+
+export interface SaltedHashSubstringScrubberParams {
+  initializationVector: string
+  regex: string
+}
+
+export const saltedHashSubstringScrubber: SaltedHashSubstringScrubberFn = (value, params) => {
+  _assert(params?.initializationVector, 'Initialization vector is missing')
+  _assert(params?.regex, 'Substring or regex is missing')
+
+  if (!value) return value
+
+  const regex = new RegExp(params.regex, 'g')
+
+  return value.replace(regex, substring =>
+    crypto.createHash('sha256').update(substring).update(params.initializationVector).digest('hex'),
+  )
+}
+
+export const saltedHashSubstringScrubberSQL: SaltedHashSubstringScrubberSQLFn = params => {
+  _assert(params?.initializationVector, 'Initialization vector is missing')
+  _assert(params?.regex, 'Substring or regex is missing')
+
+  const substringToReplace = `COALESCE(REGEXP_SUBSTR(${sqlValueToReplace}, '${params.regex}'), '')`
+  const hashedValue = `SHA2(${substringToReplace} || '${params.initializationVector}', 256)`
+  const replacedValue = `REGEXP_REPLACE(${sqlValueToReplace}, '${params.regex}', ${hashedValue})`
+
+  return replacedValue
+}
+
 function nthChar(str: string, character: string, n: number): number | undefined {
   let count = 0
   let i = 0
@@ -489,6 +525,7 @@ export const defaultScrubbers: ScrubbersMap = {
   saltedHashScrubber,
   saltedHashEmailScrubber,
   bcryptStringScrubber,
+  saltedHashSubstringScrubber,
 }
 
 export const defaultScrubbersSQL: ScrubbersSQLMap = {
@@ -504,4 +541,5 @@ export const defaultScrubbersSQL: ScrubbersSQLMap = {
   saltedHashScrubber: saltedHashScrubberSQL,
   saltedHashEmailScrubber: saltedHashEmailScrubberSQL,
   bcryptStringScrubber: bcryptStringScrubberSQL,
+  saltedHashSubstringScrubber: saltedHashSubstringScrubberSQL,
 }

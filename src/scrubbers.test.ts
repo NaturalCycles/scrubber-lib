@@ -1,3 +1,4 @@
+import { _stringMapEntries } from '@naturalcycles/js-lib'
 import { nanoid } from '@naturalcycles/nodejs-lib'
 import {
   bcryptStringScrubber,
@@ -7,6 +8,7 @@ import {
   charsFromRightScrubberSQL,
   isoDateStringScrubber,
   isoDateStringScrubberSQL,
+  saltedHashSubstringScrubber,
   preserveOriginalScrubber,
   preserveOriginalScrubberSQL,
   randomEmailInContentScrubber,
@@ -25,6 +27,8 @@ import {
   undefinedScrubberSQL,
   unixTimestampScrubber,
   unixTimestampScrubberSQL,
+  defaultScrubbers,
+  defaultScrubbersSQL,
 } from './scrubbers'
 
 const bryptStr1 = '$2a$12$HYNzBb8XYOZZeRwZDiVux.orKNqkSVAoXBDc9Gw7nSxr8rcZupbRK'
@@ -433,4 +437,77 @@ test('bcryptStringScrubberSQL', () => {
   expect(
     bcryptStringScrubberSQL({ replacements: '$2a$10$:$2a$10$456,$2a$12$:$2a$12$123' }),
   ).toMatchSnapshot()
+})
+
+describe('saltedHashSubstringScrubber', () => {
+  const initializationVector = nanoid()
+
+  test('should scrub the matching substring with a hash', () => {
+    const result = saltedHashSubstringScrubber('foo|00:00:00:00:00:00|bar', {
+      regex: '00:00:00:00:00:00',
+      initializationVector,
+    })
+
+    expect(result).toMatch(/foo\|.{64}\|bar/)
+    expect(result).not.toContain('00:00:00:00:00:00')
+  })
+
+  test('should scrub the same value with the same hash', () => {
+    const result1 = saltedHashSubstringScrubber('foo|00:00:00:00:00:00|bar', {
+      regex: '00:00:00:00:00:00',
+      initializationVector,
+    })
+
+    const result2 = saltedHashSubstringScrubber('bee|00:00:00:00:00:00|boo', {
+      regex: '00:00:00:00:00:00',
+      initializationVector,
+    })
+
+    expect(result1?.substring(4, 64)).toBe(result2?.substring(4, 64))
+  })
+
+  test('should scrub substring using regex', () => {
+    const result = saltedHashSubstringScrubber('foo|00:00:00:00:00:00|bar', {
+      regex:
+        '[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}:[0-9a-zA-Z]{2}',
+      initializationVector,
+    })
+
+    expect(result).toMatch(/foo\|.{64}\|bar/)
+    expect(result).not.toContain('00:00:00:00:00:00')
+  })
+
+  test('should scrub multiple occurrences', () => {
+    const result = saltedHashSubstringScrubber('foo|max|bar|max|boo', {
+      regex: 'max',
+      initializationVector,
+    })
+
+    expect(result).not.toContain('max')
+  })
+
+  test('should throw when the salt is missing', () => {
+    expect(() => saltedHashSubstringScrubber('foo|max|bar', { regex: 'max' } as any)).toThrow(
+      'Initialization vector is missing',
+    )
+  })
+
+  test('should throw when the regex or substring is missing', () => {
+    expect(() =>
+      saltedHashSubstringScrubber('foo|max|bar', {
+        initializationVector,
+      } as any),
+    ).toThrow('Substring or regex is missing')
+  })
+})
+
+const scrubberNames = _stringMapEntries(defaultScrubbers).map(([k]) => k)
+test.each(scrubberNames)('the %s should have its SQL scrubber counterpart', scrubberName => {
+  console.log(scrubberName, defaultScrubbersSQL[scrubberName])
+  expect(defaultScrubbersSQL[scrubberName]).toBeDefined()
+})
+
+const sqlScrubberNames = _stringMapEntries(defaultScrubbersSQL).map(([k]) => k)
+test.each(sqlScrubberNames)('the %s should have its scrubber counterpart', scrubberName => {
+  expect(defaultScrubbers[scrubberName]).toBeDefined()
 })
