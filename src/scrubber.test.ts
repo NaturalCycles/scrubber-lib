@@ -447,7 +447,7 @@ test('saltedHashSubstringScrubber should scrub substring values', () => {
       'id,foo': {
         scrubber: 'saltedHashSubstringScrubber',
         params: {
-          regex: ['\\d\\d'],
+          regex: [String.raw`\d\d`],
           initializationVector: 'initializationVector',
         },
       },

@@ -2,13 +2,14 @@ import { _stringMapEntries } from '@naturalcycles/js-lib'
 import { nanoid } from '@naturalcycles/nodejs-lib'
 import {
   bcryptStringScrubber,
-  bcryptStringScrubberSQL,
   BcryptStringScrubberParams,
+  bcryptStringScrubberSQL,
   charsFromRightScrubber,
   charsFromRightScrubberSQL,
+  defaultScrubbers,
+  defaultScrubbersSQL,
   isoDateStringScrubber,
   isoDateStringScrubberSQL,
-  saltedHashSubstringScrubber,
   preserveOriginalScrubber,
   preserveOriginalScrubberSQL,
   randomEmailInContentScrubber,
@@ -21,14 +22,13 @@ import {
   saltedHashEmailScrubberSQL,
   saltedHashScrubber,
   saltedHashScrubberSQL,
+  saltedHashSubstringScrubber,
   staticScrubber,
   staticScrubberSQL,
   undefinedScrubber,
   undefinedScrubberSQL,
   unixTimestampScrubber,
   unixTimestampScrubberSQL,
-  defaultScrubbers,
-  defaultScrubbersSQL,
 } from './scrubbers'
 
 const bryptStr1 = '$2a$12$HYNzBb8XYOZZeRwZDiVux.orKNqkSVAoXBDc9Gw7nSxr8rcZupbRK'

@@ -80,7 +80,7 @@ export class Scrubber {
       let scrubberCurrentField = this.cfg.fields[key]
 
       if (!scrubberCurrentField && this.cfg.splitFields?.[key] && parents) {
-        for (const splitFieldParentCfg of this.cfg.splitFields[key]!) {
+        for (const splitFieldParentCfg of this.cfg.splitFields[key]) {
           if (this.arrayContainsInOrder(parents, splitFieldParentCfg)) {
             const recomposedKey = [...splitFieldParentCfg, key].join('.')
             scrubberCurrentField = this.cfg.fields[recomposedKey]
@@ -189,7 +189,7 @@ export class Scrubber {
         const key = splitField.pop()!
         // Support multiple keys with different parents
         output[key] ||= []
-        output[key]!.push(splitField)
+        output[key].push(splitField)
       }
     }
     return output
@@ -212,7 +212,7 @@ export class Scrubber {
     if (aSliced.length < b.length) return false
 
     // a may be longer than b, slice a to the size of b, take chunk from the end
-    aSliced = aSliced.slice(aSliced.length - b.length, aSliced.length)
+    aSliced = aSliced.slice(aSliced.length - b.length)
 
     return _deepEquals(aSliced, b)
   }
