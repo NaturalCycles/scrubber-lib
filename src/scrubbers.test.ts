@@ -63,7 +63,7 @@ describe('staticScrubber', () => {
   test.each([
     [undefined, 'replacement'],
     ['', 'replacement'],
-  ])('handles undefined values "%s" > "%s"', (input, replacement) => {
+  ])('handles undefined values "%s" > "%s"', (_input, replacement) => {
     const result = staticScrubber('', { replacement: 'replacement' })
     expect(result).toEqual(replacement)
   })

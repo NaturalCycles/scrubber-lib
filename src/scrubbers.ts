@@ -54,7 +54,7 @@ export type StaticScrubberFn = ScrubberFn<any, StaticScrubberParams>
 
 export type StaticScrubberSQLFn = ScrubberSQLFn<StaticScrubberParams>
 
-export const staticScrubber: StaticScrubberFn = (value, params = { replacement: '' }) =>
+export const staticScrubber: StaticScrubberFn = (_value, params = { replacement: '' }) =>
   params.replacement
 
 export const staticScrubberSQL: StaticScrubberSQLFn = (params = { replacement: '' }) => {
@@ -248,7 +248,7 @@ export type RandomScrubberFn = ScrubberFn<string, RandomScrubberParams>
 
 export type RandomScrubberSQLFn = ScrubberSQLFn<RandomScrubberParams>
 
-export const randomScrubber: RandomScrubberFn = (value, additionalParams) => {
+export const randomScrubber: RandomScrubberFn = (_value, additionalParams) => {
   const params = { alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE, length: 16, ...additionalParams }
   return nanoIdCustomAlphabet(params.alphabet, params['length'])()
 }
@@ -275,7 +275,7 @@ export type RandomEmailScrubberFn = ScrubberFn<string, RandomEmailScrubberParams
 
 export type RandomEmailScrubberSQLFn = ScrubberSQLFn<RandomEmailScrubberParams>
 
-export const randomEmailScrubber: RandomEmailScrubberFn = (value, additionalParams) => {
+export const randomEmailScrubber: RandomEmailScrubberFn = (_value, additionalParams) => {
   const params = {
     alphabet: ALPHABET_ALPHANUMERIC_LOWERCASE,
     length: 16,

@@ -121,12 +121,11 @@ export class Scrubber {
       } catch (err) {
         if (this.cfg.throwOnError) {
           throw err
-        } else {
-          console.log(
-            `Error when applying scrubber '${scrubberCurrentField.scrubber}' to field '${key}'`,
-            err,
-          )
         }
+        console.log(
+          `Error when applying scrubber '${scrubberCurrentField.scrubber}' to field '${key}'`,
+          err,
+        )
       }
     })
 

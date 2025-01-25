@@ -80,10 +80,10 @@ scrub<T> (data: T): T
   debugging purposes, it might be useful to set it to `true` to identify potential interesting
   fields
 - [since 2.9] - support matching key only if parent key name(s) also match. Supported using dots `.`
-  in key name. Config with key `a.b` will match object key literally AND it will match object key `b`
-  if parent object key was `a`. Works at arbitrary depth. LIMITATION: parent matching currently assumes
-  final key (`b`) is unique. If multiple parent references end with the same key (e.g. `a.b` & `c.b`),
-  only last one will work.
+  in key name. Config with key `a.b` will match object key literally AND it will match object key
+  `b` if parent object key was `a`. Works at arbitrary depth. LIMITATION: parent matching currently
+  assumes final key (`b`) is unique. If multiple parent references end with the same key (e.g. `a.b`
+  & `c.b`), only last one will work.
 
 ## Limitations
 
