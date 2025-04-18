@@ -1,7 +1,8 @@
-import { _assert, _deepEquals, StringMap } from '@naturalcycles/js-lib'
+import type { StringMap } from '@naturalcycles/js-lib'
+import { _assert, _deepEquals } from '@naturalcycles/js-lib'
 import { nanoid } from '@naturalcycles/nodejs-lib'
-import { ScrubberConfig, ScrubbersMap, ScrubbersSQLMap } from './scrubber.model'
-import { defaultScrubbers, defaultScrubbersSQL } from './scrubbers'
+import type { ScrubberConfig, ScrubbersMap, ScrubbersSQLMap } from './scrubber.model.js'
+import { defaultScrubbers, defaultScrubbersSQL } from './scrubbers.js'
 
 const defaultCfg: Partial<ScrubberConfig> = { throwOnError: false, preserveFalsy: true }
 

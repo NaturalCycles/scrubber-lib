@@ -1,4 +1,4 @@
-import { ScrubberConfig } from '../scrubber.model'
+import type { ScrubberConfig } from '../scrubber.model.js'
 
 export function configStaticScrubbersMock(): ScrubberConfig {
   return {

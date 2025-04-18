@@ -1,7 +1,7 @@
-import * as crypto from 'node:crypto'
+import crypto from 'node:crypto'
 import { _assert } from '@naturalcycles/js-lib'
 import { nanoIdCustomAlphabet } from '@naturalcycles/nodejs-lib'
-import { ScrubberFn, ScrubbersMap, ScrubberSQLFn, ScrubbersSQLMap } from './scrubber.model'
+import type { ScrubberFn, ScrubbersMap, ScrubberSQLFn, ScrubbersSQLMap } from './scrubber.model.js'
 
 function encloseValueForSQL(value: string | number, type: string): string {
   if (type === 'STRING') return `'${value}'`

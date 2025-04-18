@@ -1,8 +1,9 @@
 import { _stringMapEntries } from '@naturalcycles/js-lib'
 import { nanoid } from '@naturalcycles/nodejs-lib'
+import { describe, expect, test } from 'vitest'
+import type { BcryptStringScrubberParams } from './scrubbers.js'
 import {
   bcryptStringScrubber,
-  BcryptStringScrubberParams,
   bcryptStringScrubberSQL,
   charsFromRightScrubber,
   charsFromRightScrubberSQL,
@@ -29,7 +30,7 @@ import {
   undefinedScrubberSQL,
   unixTimestampScrubber,
   unixTimestampScrubberSQL,
-} from './scrubbers'
+} from './scrubbers.js'
 
 const bryptStr1 = '$2a$12$HYNzBb8XYOZZeRwZDiVux.orKNqkSVAoXBDc9Gw7nSxr8rcZupbRK'
 const bryptStr2 = '$2a$10$HYNzBb8XYOZZeRwZDiVux.orKNqkSVAoXBDc9Gw7nSxr8rcZupbRK'

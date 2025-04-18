@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`bcryptStringScrubberSQL 1`] = `
 "CASE WHEN ARRAY_SIZE(ARRAY_SLICE(SPLIT(VAL, '$'), 0, 3)) >= 3 -- If there are at least 3 $ in the string
@@ -24,4 +24,4 @@ exports[`bcryptStringScrubberSQL 2`] = `
           END"
 `;
 
-exports[`saltedHashEmailScrubber generates hash using initializationVector and suffixes domain 1`] = `"7ecc1443f9a0c0c795069118020ac1f11dcba568bc9dfaf01433fff8b6b42de2@naturalcycles.com"`;
+exports[`saltedHashEmailScrubber > generates hash using initializationVector and suffixes domain 1`] = `"7ecc1443f9a0c0c795069118020ac1f11dcba568bc9dfaf01433fff8b6b42de2@naturalcycles.com"`;
