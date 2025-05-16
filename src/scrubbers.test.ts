@@ -11,6 +11,8 @@ import {
   defaultScrubbersSQL,
   isoDateStringScrubber,
   isoDateStringScrubberSQL,
+  keepCharsFromLeftScrubber,
+  keepCharsFromLeftScrubberSQL,
   preserveOriginalScrubber,
   preserveOriginalScrubberSQL,
   randomEmailInContentScrubber,
@@ -243,6 +245,48 @@ test('charsFromRightScrubberSQL', () => {
   expect(
     charsFromRightScrubberSQL({ count: 2, replacement: 'X', replaceFull: true }),
   ).toMatchInlineSnapshot(`"SUBSTR(VAL, 0, LEN(VAL) - 2) || 'X'"`)
+})
+
+describe('keepCharsFromLeftScrubber', () => {
+  test.each([
+    [undefined, undefined],
+    ['', undefined],
+    ['11225', '112XX'],
+    ['123456789', '123XXXXXX'],
+    ['ABC DEF', 'ABCXXXX'],
+    ['ABC', 'ABC'],
+    ['AB', 'AB'],
+    ['A', 'A'],
+  ])('anonymizes zip codes "%s" > "%s"', (zip, expected) => {
+    const result = keepCharsFromLeftScrubber(zip, { count: 3, replacement: 'X' })
+    expect(result).toEqual(expected)
+  })
+
+  test('keeps 3 chars', () => {
+    const result = keepCharsFromLeftScrubber('76543', { count: 3, replacement: 'X' })
+    expect(result).toBe('765XX')
+  })
+
+  test('keepCharsFromLeftScrubber - Full replacement', () => {
+    const result = keepCharsFromLeftScrubber('blabla_123', {
+      count: 3,
+      replacement: '456',
+      replaceFull: true,
+    })
+    expect(result).toBe('bla456')
+  })
+})
+
+test('keepCharsFromLeftScrubberSQL', () => {
+  expect(keepCharsFromLeftScrubberSQL({ count: 2, replacement: 'X' })).toMatchInlineSnapshot(
+    `"SUBSTR(VAL, 0, 2) || REPEAT('X', LEAST(0, LEN(VAL)-2)"`,
+  )
+  expect(keepCharsFromLeftScrubberSQL({ count: 5, replacement: 'X' })).toMatchInlineSnapshot(
+    `"SUBSTR(VAL, 0, 5) || REPEAT('X', LEAST(0, LEN(VAL)-5)"`,
+  )
+  expect(
+    keepCharsFromLeftScrubberSQL({ count: 2, replacement: 'X', replaceFull: true }),
+  ).toMatchInlineSnapshot(`"WHEN LEN(VAL) > 2 THEN SUBSTR(VAL, 0, 2) || 'X' ELSE VAL"`)
 })
 
 describe('randomScrubber', () => {

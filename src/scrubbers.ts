@@ -259,7 +259,7 @@ export const keepCharsFromLeftScrubber: KeepCharsFromLeftScrubberFn = (
 
   const { count, replacement, replaceFull } = params
 
-  if (value.length >= count) {
+  if (value.length <= count) {
     return value
   }
   if (replaceFull) {
