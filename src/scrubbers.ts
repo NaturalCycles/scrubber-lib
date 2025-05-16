@@ -231,6 +231,57 @@ export const charsFromRightScrubberSQL: CharsFromRightScrubberSQLFn = (
 }
 
 /*
+  Keep Chars From Left scrubber
+
+  Keep `params.count` characters from the left and replace the rest with  `params.replacement`
+  Useful for anonymizing zip codes
+ */
+export interface KeepCharsFromLeftScrubberParams {
+  count: number
+  replacement: string
+  /**
+   * Should replacement be for "full" replacement? default is false, each replaced char will be replaced with replacement.
+   */
+  replaceFull?: boolean
+}
+export type KeepCharsFromLeftScrubberFn = ScrubberFn<
+  string | undefined,
+  KeepCharsFromLeftScrubberParams
+>
+
+export type KeepCharsFromLeftScrubberSQLFn = ScrubberSQLFn<KeepCharsFromLeftScrubberParams>
+
+export const keepCharsFromLeftScrubber: KeepCharsFromLeftScrubberFn = (
+  value,
+  params = { count: 99, replacement: 'X', replaceFull: false },
+) => {
+  if (!value) return
+
+  const { count, replacement, replaceFull } = params
+
+  if (value.length >= count) {
+    return value
+  }
+  if (replaceFull) {
+    return value.slice(0, count) + replacement
+  }
+  return value.slice(0, count) + replacement.repeat(value.length - count)
+}
+
+export const keepCharsFromLeftScrubberSQL: KeepCharsFromLeftScrubberSQLFn = (
+  params = { count: 99, replacement: 'X', replaceFull: false },
+) => {
+  const { count, replacement, replaceFull } = params
+
+  if (replaceFull) {
+    // keep $count chars from the left, and replace rest by $replacement
+    return `WHEN LEN(${sqlValueToReplace}) > ${count} THEN SUBSTR(${sqlValueToReplace}, 0, ${count}) || '${replacement}' ELSE ${sqlValueToReplace}`
+  }
+  // keep $count chars and fill out with $replacement if string was longer
+  return `SUBSTR(${sqlValueToReplace}, 0, ${count}) || REPEAT('${replacement}', LEAST(0, LEN(${sqlValueToReplace})-${count})`
+}
+
+/*
   Random scrubber
 
   Uses the package nanoid to generate a random string given an alphabet and a length
