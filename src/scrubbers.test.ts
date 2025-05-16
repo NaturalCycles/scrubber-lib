@@ -286,7 +286,7 @@ test('keepCharsFromLeftScrubberSQL', () => {
   )
   expect(
     keepCharsFromLeftScrubberSQL({ count: 2, replacement: 'X', replaceFull: true }),
-  ).toMatchInlineSnapshot(`"WHEN LEN(VAL) > 2 THEN SUBSTR(VAL, 0, 2) || 'X' ELSE VAL"`)
+  ).toMatchInlineSnapshot(`"IFF(LEN(VAL) > 2, SUBSTR(VAL, 0, 2) || 'X', VAL)"`)
 })
 
 describe('randomScrubber', () => {
