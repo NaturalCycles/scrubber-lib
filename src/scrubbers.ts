@@ -275,7 +275,7 @@ export const keepCharsFromLeftScrubberSQL: KeepCharsFromLeftScrubberSQLFn = (
 
   if (replaceFull) {
     // keep $count chars from the left, and replace rest by $replacement
-    return `WHEN LEN(${sqlValueToReplace}) > ${count} THEN SUBSTR(${sqlValueToReplace}, 0, ${count}) || '${replacement}' ELSE ${sqlValueToReplace}`
+    return `IFF(LEN(${sqlValueToReplace}) > ${count}, SUBSTR(${sqlValueToReplace}, 0, ${count}) || '${replacement}', ${sqlValueToReplace})`
   }
   // keep $count chars and fill out with $replacement if string was longer
   return `SUBSTR(${sqlValueToReplace}, 0, ${count}) || REPEAT('${replacement}', LEAST(0, LEN(${sqlValueToReplace})-${count})`
