@@ -66,8 +66,8 @@ describe('staticScrubber', () => {
   test.each([
     [undefined, 'replacement'],
     ['', 'replacement'],
-  ])('handles undefined values "%s" > "%s"', (_input, replacement) => {
-    const result = staticScrubber('', { replacement: 'replacement' })
+  ])('handles undefined values "%s" > "%s"', (input, replacement) => {
+    const result = staticScrubber(input, { replacement: 'replacement' })
     expect(result).toEqual(replacement)
   })
 
@@ -84,11 +84,22 @@ describe('staticScrubber', () => {
 
     expect(staticScrubber(secretNum, { replacement: r })).toEqual(r)
   })
+
+  test.each([
+    ['wontmatch', 'wontmatch'],
+    ['could VERYWELL match', 'replacement'],
+  ])('replaces only ifMatch matches "%s" > "%s"', (input, replacement) => {
+    const result = staticScrubber(input, { ifMatch: '.*V.RY.*LL.*', replacement: 'replacement' })
+    expect(result).toEqual(replacement)
+  })
 })
 
 test('staticScrubberSQL', () => {
   expect(staticScrubberSQL({ replacement: 'hello world' })).toMatchInlineSnapshot(`"'hello world'"`)
   expect(staticScrubberSQL({ replacement: 12345 })).toMatchInlineSnapshot(`"12345"`)
+  expect(staticScrubberSQL({ ifMatch: '.*V.RY.*LL.*', replacement: 12345 })).toMatchInlineSnapshot(
+    `"CASE WHEN REGEXP_LIKE(VAL, '.*V.RY.*LL.*') THEN 12345 ELSE VAL END"`,
+  )
 })
 
 describe('unixTimestampScrubber', () => {

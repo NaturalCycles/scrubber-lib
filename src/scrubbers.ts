@@ -48,20 +48,24 @@ export const preserveOriginalScrubberSQL: PreserveOriginalScrubberSQLFn = () => 
  Replace value with `params.replacement`
  */
 export interface StaticScrubberParams {
+  /**
+   * Only scrub if value matches given Regex
+   */
+  ifMatch?: string
   replacement: string | number
 }
 export type StaticScrubberFn = ScrubberFn<any, StaticScrubberParams>
 
 export type StaticScrubberSQLFn = ScrubberSQLFn<StaticScrubberParams>
 
-export const staticScrubber: StaticScrubberFn = (_value, params = { replacement: '' }) =>
-  params.replacement
+export const staticScrubber: StaticScrubberFn = (value, params = { replacement: '' }) =>
+  (params.ifMatch && !value.match(params.ifMatch) && value) || params.replacement
 
 export const staticScrubberSQL: StaticScrubberSQLFn = (params = { replacement: '' }) => {
-  const { replacement } = params
+  const { ifMatch, replacement } = params
   const type = typeof replacement === 'number' ? 'NUMBER' : 'STRING'
 
-  return encloseValueForSQL(replacement, type)
+  return wrapIfMatchSQL(ifMatch, encloseValueForSQL(replacement, type))
 }
 /*
  ISO Date string scrubber
@@ -595,4 +599,9 @@ export const defaultScrubbersSQL: ScrubbersSQLMap = {
   bcryptStringScrubber: bcryptStringScrubberSQL,
   saltedHashSubstringScrubber: saltedHashSubstringScrubberSQL,
   keepCharsFromLeftScrubber: keepCharsFromLeftScrubberSQL,
+}
+
+const wrapIfMatchSQL = (ifMatch: string | undefined, expression: string): string => {
+  if (ifMatch === undefined) return expression
+  return `CASE WHEN REGEXP_LIKE(${sqlValueToReplace}, '${ifMatch}') THEN ${expression} ELSE ${sqlValueToReplace} END`
 }
