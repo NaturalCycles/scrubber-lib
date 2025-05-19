@@ -98,7 +98,7 @@ test('staticScrubberSQL', () => {
   expect(staticScrubberSQL({ replacement: 'hello world' })).toMatchInlineSnapshot(`"'hello world'"`)
   expect(staticScrubberSQL({ replacement: 12345 })).toMatchInlineSnapshot(`"12345"`)
   expect(staticScrubberSQL({ ifMatch: '.*V.RY.*LL.*', replacement: 12345 })).toMatchInlineSnapshot(
-    `"CASE WHEN LIKE(VAL, '.*V.RY.*LL.*') THEN 12345 ELSE VAL END"`,
+    `"CASE WHEN REGEXP_LIKE(VAL, '.*V.RY.*LL.*') THEN 12345 ELSE VAL END"`,
   )
 })
 
