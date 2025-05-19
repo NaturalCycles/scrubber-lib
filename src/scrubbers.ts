@@ -603,5 +603,5 @@ export const defaultScrubbersSQL: ScrubbersSQLMap = {
 
 const wrapIfMatchSQL = (ifMatch: string | undefined, expression: string): string => {
   if (ifMatch === undefined) return expression
-  return `CASE WHEN LIKE(${sqlValueToReplace}, '${ifMatch}') THEN ${expression} ELSE ${sqlValueToReplace} END`
+  return `CASE WHEN REGEXP_LIKE(${sqlValueToReplace}, '${ifMatch}') THEN ${expression} ELSE ${sqlValueToReplace} END`
 }
