@@ -577,6 +577,7 @@ export const defaultScrubbers: ScrubbersMap = {
   saltedHashEmailScrubber,
   bcryptStringScrubber,
   saltedHashSubstringScrubber,
+  keepCharsFromLeftScrubber,
 }
 
 export const defaultScrubbersSQL: ScrubbersSQLMap = {
@@ -593,4 +594,5 @@ export const defaultScrubbersSQL: ScrubbersSQLMap = {
   saltedHashEmailScrubber: saltedHashEmailScrubberSQL,
   bcryptStringScrubber: bcryptStringScrubberSQL,
   saltedHashSubstringScrubber: saltedHashSubstringScrubberSQL,
+  keepCharsFromLeftScrubber: keepCharsFromLeftScrubberSQL,
 }
