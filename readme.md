@@ -106,3 +106,10 @@ Allows, for example, removal of sensitive data for:
 - Error reporting to third-party services
 - Data exports (such as staging or other data exports)
 - Anonymizing production users (GDPR "_right to be forgotten_")
+
+## Contributing
+
+Using [Semantic Release](https://github.com/semantic-release/semantic-release), tag your commit
+(when squashing the PR on merge) according to
+[Angular Commit Message Guidelines](https://github.com/angular/angular/blob/main/contributing-docs/commit-message-guidelines.md)
+with type (and optionally `(scope)`, as in, `fix(data): Description`.
