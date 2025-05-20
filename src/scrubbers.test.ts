@@ -32,6 +32,8 @@ import {
   undefinedScrubberSQL,
   unixTimestampScrubber,
   unixTimestampScrubberSQL,
+  zipScrubber,
+  zipScrubberSQL,
 } from './scrubbers.js'
 
 const bryptStr1 = '$2a$12$HYNzBb8XYOZZeRwZDiVux.orKNqkSVAoXBDc9Gw7nSxr8rcZupbRK'
@@ -555,6 +557,34 @@ describe('saltedHashSubstringScrubber', () => {
       } as any),
     ).toThrow('Substring or regex is missing')
   })
+})
+
+describe('zipScrubber', () => {
+  test.each([
+    [undefined, undefined],
+    ['', undefined],
+    ['11225', '112XX'],
+    ['123456789', '123XX'],
+    ['ABC DEF', 'ABCXX'],
+    ['ABC', 'ABCXX'],
+    ['AB', 'ABXX'],
+    ['A', 'AXX'],
+    ['878123', 'XXXXX'],
+  ])('anonymizes zip codes "%s" > "%s"', (zip, expected) => {
+    const result = zipScrubber(zip)
+    expect(result).toEqual(expected)
+  })
+})
+
+test('zipScrubberSQL', () => {
+  expect(zipScrubberSQL()).toMatchInlineSnapshot(
+    `
+    "CASE WHEN ARRAY_CONTAINS(SUBSTR(VAL, 0, 3), ['036', '059', '063', '102', '203', '556', '692', '790', '821', '823', '830', '831', '878', '879', '884', '890', '893'])
+         THEN 'XXXXX'
+         ELSE SUBSTR(VAL, 0, 3) || 'XX'
+       END"
+  `,
+  )
 })
 
 const scrubberNames = _stringMapEntries(defaultScrubbers).map(([k]) => k)
