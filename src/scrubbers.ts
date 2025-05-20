@@ -553,6 +553,54 @@ export const saltedHashSubstringScrubberSQL: SaltedHashSubstringScrubberSQLFn = 
   return replacedValue
 }
 
+/*
+ A scrubber based on USA recommendations from HIPAA
+ https://www.hhs.gov/hipaa/for-professionals/special-topics/de-identification/index.html#standard
+ */
+export type ZipScrubberFn = ScrubberFn<string | undefined, undefined>
+
+/**
+ * ZIP areas to scrub completely, due to less than 20,000 inhabitants
+ */
+const restrictedZipAreas = [
+  '036',
+  '059',
+  '063',
+  '102',
+  '203',
+  '556',
+  '692',
+  '790',
+  '821',
+  '823',
+  '830',
+  '831',
+  '878',
+  '879',
+  '884',
+  '890',
+  '893',
+]
+
+export type ZipScrubberSQLFn = ScrubberSQLFn<undefined>
+
+export const zipScrubber: ZipScrubberFn = value => {
+  if (!value) return
+
+  const leftPart = value.slice(0, 3)
+  if (restrictedZipAreas.includes(leftPart)) return 'XXXXX'
+  return `${leftPart}XX` // de-identify length of zip code as well.
+}
+
+export const zipScrubberSQL: ZipScrubberSQLFn = () =>
+  `CASE WHEN ARRAY_CONTAINS(
+               SUBSTR(${sqlValueToReplace}, 0, 3),
+               ['${restrictedZipAreas.join("', '")}']::ARRAY(STRING)
+             )
+     THEN 'XXXXX'
+     ELSE SUBSTR(${sqlValueToReplace}, 0, 3) || 'XX'
+   END`
+
 function nthChar(str: string, character: string, n: number): number | undefined {
   let count = 0
   let i = 0
@@ -582,6 +630,7 @@ export const defaultScrubbers: ScrubbersMap = {
   bcryptStringScrubber,
   saltedHashSubstringScrubber,
   keepCharsFromLeftScrubber,
+  zipScrubber,
 }
 
 export const defaultScrubbersSQL: ScrubbersSQLMap = {
@@ -599,6 +648,7 @@ export const defaultScrubbersSQL: ScrubbersSQLMap = {
   bcryptStringScrubber: bcryptStringScrubberSQL,
   saltedHashSubstringScrubber: saltedHashSubstringScrubberSQL,
   keepCharsFromLeftScrubber: keepCharsFromLeftScrubberSQL,
+  zipScrubber: zipScrubberSQL,
 }
 
 const wrapIfMatchSQL = (ifMatch: string | undefined, expression: string): string => {
