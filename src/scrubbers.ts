@@ -593,7 +593,10 @@ export const zipScrubber: ZipScrubberFn = value => {
 }
 
 export const zipScrubberSQL: ZipScrubberSQLFn = () =>
-  `CASE WHEN ARRAY_CONTAINS(SUBSTR(${sqlValueToReplace}, 0, 3), ['${restrictedZipAreas.join("', '")}'])
+  `CASE WHEN ARRAY_CONTAINS(
+               SUBSTR(${sqlValueToReplace}, 0, 3),
+               ['${restrictedZipAreas.join("', '")}']::ARRAY(STRING)
+             )
      THEN 'XXXXX'
      ELSE SUBSTR(${sqlValueToReplace}, 0, 3) || 'XX'
    END`

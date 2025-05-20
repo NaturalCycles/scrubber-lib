@@ -579,7 +579,10 @@ describe('zipScrubber', () => {
 test('zipScrubberSQL', () => {
   expect(zipScrubberSQL()).toMatchInlineSnapshot(
     `
-    "CASE WHEN ARRAY_CONTAINS(SUBSTR(VAL, 0, 3), ['036', '059', '063', '102', '203', '556', '692', '790', '821', '823', '830', '831', '878', '879', '884', '890', '893'])
+    "CASE WHEN ARRAY_CONTAINS(
+                   SUBSTR(VAL, 0, 3),
+                   ['036', '059', '063', '102', '203', '556', '692', '790', '821', '823', '830', '831', '878', '879', '884', '890', '893']::ARRAY(STRING)
+                 )
          THEN 'XXXXX'
          ELSE SUBSTR(VAL, 0, 3) || 'XX'
        END"
