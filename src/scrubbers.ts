@@ -371,7 +371,7 @@ export const randomEmailInContentScrubber: RandomEmailInContentScrubberFn = (
   additionalParams,
 ) => {
   // Email regex, allows letters
-  const emailRegex = /([a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\.[a-zA-Z_-]{2,3})/
+  const emailRegex = /([a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\.[a-zA-Z_-]{2,63})/
   const matches = emailRegex.exec(value)
   if (!matches) {
     // No email found, return as is
@@ -394,7 +394,7 @@ export const randomEmailInContentScrubberSQL: RandomEmailInContentScrubberSQLFn 
     }
     return `REGEXP_REPLACE(
     ${sqlValueToReplace},
-    '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
+    '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,63}',
     RANDSTR(${length}, ${randomGeneratorSeed})
   ) || '${domain}'`
   }
