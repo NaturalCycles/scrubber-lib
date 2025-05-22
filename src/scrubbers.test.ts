@@ -379,20 +379,30 @@ describe('randomEmailInContentScrubber', () => {
     expect(result).not.toContain('example.com.br') // test multi.dot domains
     expect(result).toContain(suffix)
   })
+
+  test('scrub complex email with long TLD in text', () => {
+    const text = 'Foo bar baz qux@quux.corge grault'
+    const result = randomEmailInContentScrubber(text)
+
+    expect(result).not.toContain('qux@quux.corge')
+    expect(result).not.toContain(' qux')
+    expect(result).not.toContain('ge grault') // not matching the full email
+    expect(result).toContain('Foo bar baz ')
+  })
 })
 
 test('randomEmailInContentScrubberSQL', () => {
   expect(randomEmailInContentScrubberSQL()).toMatchInlineSnapshot(`
     "REGEXP_REPLACE(
         VAL,
-        '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
+        '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,63}',
         RANDSTR(16, HASH(RANDOM()))
       ) || '@example.com'"
   `)
   expect(randomEmailInContentScrubberSQL({ length: 5 })).toMatchInlineSnapshot(`
     "REGEXP_REPLACE(
         VAL,
-        '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
+        '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,63}',
         RANDSTR(5, HASH(RANDOM()))
       ) || '@example.com'"
   `)
@@ -400,7 +410,7 @@ test('randomEmailInContentScrubberSQL', () => {
     .toMatchInlineSnapshot(`
       "REGEXP_REPLACE(
           VAL,
-          '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,3}',
+          '[a-zA-Z1-9._-]*@[a-zA-Z1-9._-]*\\.[a-zA-Z_-]{2,63}',
           RANDSTR(5, HASH(RANDOM()))
         ) || '@customdomain.com'"
     `)
