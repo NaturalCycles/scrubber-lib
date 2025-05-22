@@ -384,8 +384,6 @@ describe('randomEmailInContentScrubber', () => {
     const text = 'Foo bar baz qux@quux.corge grault'
     const result = randomEmailInContentScrubber(text)
 
-    console.log(result)
-
     expect(result).not.toContain('qux@quux.corge')
     expect(result).not.toContain(' qux')
     expect(result).not.toContain('ge grault') // not matching the full email
